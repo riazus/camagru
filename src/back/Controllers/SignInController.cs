@@ -10,9 +10,9 @@ namespace ReunionApi.Controllers
     [Route("signin")]
     public class SignInController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IAccountService _userService;
 
-        public SignInController(IUserService userService)
+        public SignInController(IAccountService userService)
         {
             _userService = userService;
         }

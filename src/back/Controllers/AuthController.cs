@@ -1,3 +1,4 @@
+using back.Entities;
 using back.Models.User;
 using back.Services.Jwt;
 using back.Services.UserServices;
@@ -9,26 +10,26 @@ namespace back.Controllers;
 [Route("api")]
 public class AuthController : ControllerBase
 {
-    private readonly IUserService _userService;
+    /*private readonly IAccountService _accountService;
     private readonly IJwtService _jwtService;
 
-    public AuthController(IUserService userService, IJwtService jwtService)
+    public AuthController(IAccountService userService, IJwtService jwtService)
     {
-        _userService = userService;
+        _accountService = userService;
         _jwtService = jwtService;
     }
 
     [HttpPost("register")]
     public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerUser)
     {
-        User user = new User();
+        Account user = new Account();
 
         if (registerUser.Email == null || registerUser.Password == null)
         {
             return BadRequest(new { message = "Email and password are required." });
         }
 
-        var existUser = await _userService.GetByEmail(registerUser.Email);
+        var existUser = await _accountService.GetByEmail(registerUser.Email);
         if (existUser != null)
         {
             return Conflict(new { message = "User already exists." });
@@ -43,7 +44,7 @@ public class AuthController : ControllerBase
             user.NickName = new String(user.FirstName[0] + user.LastName).ToLower();
             user.Email = registerUser.Email;
 
-            await _userService.AddUser(user);
+            await _accountService.AddUser(user);
 
             return Created("success", user.ToDtoModel());
         }
@@ -56,7 +57,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDTO login)
     {
-        var user = await _userService.GetByEmail(login.Email);
+        var user = await _accountService.GetByEmail(login.Email);
 
         if (user == null
             || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
@@ -85,7 +86,7 @@ public class AuthController : ControllerBase
 
             Guid userId = Guid.Parse(token.Issuer);
 
-            var user = await _userService.GetById(userId);
+            var user = await _accountService.GetById(userId);
 
             return Ok(user!.ToDtoModel());
         }
@@ -101,5 +102,5 @@ public class AuthController : ControllerBase
         Response.Cookies.Delete("jwt");
 
         return Ok();
-    }
+    }*/
 }

@@ -1,8 +1,10 @@
-﻿namespace back.Models.User
+﻿using back.Entities;
+
+namespace back.Models.User
 {
-    public static class UserExtensions
+   /* public static class UserExtensions
     {
-        public static List<UserDTO> ToDtoModel(this List<User> users)
+        public static List<UserDTO> ToDtoModel(this List<Account> users)
         {
             List<UserDTO> userDTOs = new List<UserDTO>();
 
@@ -21,7 +23,7 @@
             return userDTOs;
         }
 
-        public static UserDTO ToDtoModel(this User user)
+        public static UserDTO ToDtoModel(this Account user)
         {
             return new UserDTO()
             {
@@ -32,5 +34,5 @@
                 RefreshToken = user.RefreshToken
             };
         }
-    }
+    }*/
 }

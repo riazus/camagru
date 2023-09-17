@@ -1,19 +1,23 @@
-﻿using back.Models.User;
+﻿using back.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace back.Data
 {
-    public class ReunionDbContext : DbContext
+    public class CamagruDbContext : DbContext
     {
-        public ReunionDbContext(DbContextOptions<ReunionDbContext> options) : base(options) { }
+        private readonly IConfiguration Configuration;
 
-        public DbSet<User> Users { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public CamagruDbContext(IConfiguration configuration)
         {
-            base.OnModelCreating(modelBuilder);
+            Configuration = configuration;
+        }
 
-            modelBuilder.Entity<User>(entity => { entity.HasIndex(e => e.Email).IsUnique(); });
+        public DbSet<Account> Accounts { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            // connect to ms sql database
+            options.UseSqlServer(Configuration.GetConnectionString("WebApiDatabase"));
         }
     }
 }
