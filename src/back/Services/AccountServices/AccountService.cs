@@ -58,7 +58,7 @@ public class AccountService : IAccountService
         _context.Update(account);
         _context.SaveChanges();
 
-        var response = _mapper.Map<Account, AuthenticateResponse>(account, new AuthenticateResponse());
+        var response = _mapper.Map(account, new AuthenticateResponse());
         response.JwtToken = jwtToken;
         response.RefreshToken = refreshToken.Token;
         return response;
@@ -95,7 +95,7 @@ public class AccountService : IAccountService
         var jwtToken = _jwtUtils.GenerateJwtToken(account);
 
         // return data in authenticate response object
-        var response = _mapper.Map<Account, AuthenticateResponse>(account, new AuthenticateResponse());
+        var response = _mapper.Map(account, new AuthenticateResponse());
         response.JwtToken = jwtToken;
         response.RefreshToken = newRefreshToken.Token;
         return response;
@@ -126,7 +126,7 @@ public class AccountService : IAccountService
         }
 
         // map model to new account object
-        var account = _mapper.Map<RegisterRequest, Account>(model, new Account());
+        var account = _mapper.Map(model, new Account());
 
         account.Created = DateTime.UtcNow;
         account.VerificationToken = generateVerificationToken();
@@ -196,13 +196,13 @@ public class AccountService : IAccountService
     public IEnumerable<AccountResponse> GetAll()
     {
         var accounts = _context.Accounts;
-        return _mapper.Map<Account, AccountResponse>(accounts, new List<AccountResponse>());
+        return _mapper.Map(accounts, new List<AccountResponse>());
     }
 
     public AccountResponse GetById(int id)
     {
         var account = getAccount(id);
-        return _mapper.Map<Account, AccountResponse>(account, new AccountResponse());
+        return _mapper.Map(account, new AccountResponse());
     }
 
     public AccountResponse Create(CreateRequest model)
@@ -212,7 +212,7 @@ public class AccountService : IAccountService
             throw new AppException($"Email '{model.Email}' is already registered");
 
         // map model to new account object
-        var account = _mapper.Map<CreateRequest, Account>(model, new Account());
+        var account = _mapper.Map(model, new Account());
         account.Created = DateTime.UtcNow;
         account.Verified = DateTime.UtcNow;
 
@@ -223,7 +223,7 @@ public class AccountService : IAccountService
         _context.Accounts.Add(account);
         _context.SaveChanges();
 
-        return _mapper.Map<Account, AccountResponse>(account, new AccountResponse());
+        return _mapper.Map(account, new AccountResponse());
     }
 
     public AccountResponse Update(int id, UpdateRequest model)
@@ -244,7 +244,7 @@ public class AccountService : IAccountService
         _context.Accounts.Update(account);
         _context.SaveChanges();
 
-        return _mapper.Map<Account, AccountResponse>(account, new AccountResponse());
+        return _mapper.Map(account, new AccountResponse());
     }
 
     public void Delete(int id)
