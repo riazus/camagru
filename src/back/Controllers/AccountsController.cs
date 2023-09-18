@@ -66,6 +66,7 @@ namespace back.Controllers
         public IActionResult VerifyEmail(VerifyEmailRequest model)
         {
             _accountService.VerifyEmail(model.Token);
+
             return Ok(new { message = "Verification successful, you can now login" });
         }
 
@@ -103,9 +104,9 @@ namespace back.Controllers
         [HttpGet("{id:int}")]
         public ActionResult<AccountResponse> GetById(int id)
         {
-            // users can get their own account and admins can get any account
-            /*if (id != Account.Id && Account.Role != Role.Admin)
-                return Unauthorized(new { message = "Unauthorized" });*/
+            // users can get their own account
+            if (id != Account.Id)
+                return Unauthorized(new { message = "Unauthorized" });
 
             var account = _accountService.GetById(id);
             return Ok(account);

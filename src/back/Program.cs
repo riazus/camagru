@@ -2,7 +2,7 @@ using back.Authorization;
 using back.Data;
 using back.Helpers;
 using back.Services.Email;
-using back.Services.Jwt;
+using back.Services.PostService;
 using back.Services.UserServices;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -32,6 +32,7 @@ builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSet
     // configure DI for application services
     services.AddScoped<IJwtUtils, JwtUtils>();
     services.AddScoped<IAccountService, AccountService>();
+    services.AddScoped<IPostService,  PostService>();
     services.AddScoped<IEmailService, EmailService>();
     services.AddScoped<IPasswordHasher, PasswordHasher>();
     services.AddScoped<IMapper, Mapper>();

@@ -12,7 +12,7 @@ using back.Data;
 namespace back.Migrations
 {
     [DbContext(typeof(CamagruDbContext))]
-    [Migration("20230917105816_InitialMigration")]
+    [Migration("20230918150243_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -77,6 +77,62 @@ namespace back.Migrations
                     b.ToTable("Accounts");
                 });
 
+            modelBuilder.Entity("back.Entities.Commentary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("PostId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("back.Entities.Post", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Likes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("Posts");
+                });
+
             modelBuilder.Entity("back.Entities.Account", b =>
                 {
                     b.OwnsMany("back.Entities.RefreshToken", "RefreshTokens", b1 =>
@@ -127,6 +183,35 @@ namespace back.Migrations
                         });
 
                     b.Navigation("RefreshTokens");
+                });
+
+            modelBuilder.Entity("back.Entities.Commentary", b =>
+                {
+                    b.HasOne("back.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId");
+
+                    b.HasOne("back.Entities.Post", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("back.Entities.Post", b =>
+                {
+                    b.HasOne("back.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId");
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("back.Entities.Post", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

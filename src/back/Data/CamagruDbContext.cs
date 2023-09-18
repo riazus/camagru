@@ -13,6 +13,8 @@ namespace back.Data
         }
 
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Commentary> Comments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {

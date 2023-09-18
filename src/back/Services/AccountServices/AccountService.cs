@@ -133,8 +133,7 @@ public class AccountService : IAccountService
 
         // hash password
         account.PasswordHash = _passwordHasher.Hash(model.Password);
-
-        // save account
+        
         _context.Accounts.Add(account);
         _context.SaveChanges();
 
