@@ -12,6 +12,6 @@ namespace back.Services.PostService
         MyPostResponse Create(CreateRequest model, Account currUser);
         void Like(int id);
         void Dislike(int id);
-        CommentResponse Comment(CommentRequest model);
+        CommentResponse Comment(int postId, CommentRequest model, Account currUser);
     }
 }

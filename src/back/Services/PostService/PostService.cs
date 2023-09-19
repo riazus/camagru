@@ -154,9 +154,28 @@ namespace back.Services.PostService
             _context.SaveChanges();
         }
 
-        public CommentResponse Comment(CommentRequest model)
+        public CommentResponse Comment(int postId, CommentRequest model, Account currUser)
         {
-            throw new NotImplementedException();
+            var post = _context.Posts
+                .FirstOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
+
+            Commentary commentary = new()
+            {
+                Content = model.Commentary,
+                CreatedDate = DateTime.Now,
+                Post = post,
+                Account = currUser
+            };
+
+            CommentResponse response = new()
+            {
+                Comment = commentary.Content,
+                CreateDate = commentary.CreatedDate,
+                FirstName = currUser.FirstName,
+                LastName = currUser.LastName,
+            };
+
+            return response;
         }
     }
 }

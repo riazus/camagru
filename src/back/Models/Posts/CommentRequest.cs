@@ -1,8 +1,10 @@
-﻿namespace back.Models.Posts
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace back.Models.Posts
 {
     public class CommentRequest
     {
+        [Required]
         public string Commentary { get; set; }
-        public int CommentatorId { get; set; }
     }
 }

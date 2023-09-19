@@ -71,7 +71,7 @@ namespace back.Controllers
         [HttpPost("comment/{id:int}")]
         public ActionResult<CommentResponse> Comment(int id, CommentRequest model)
         {
-            var response = _postService.Comment(model);
+            var response = _postService.Comment(id, model, Account);
             return Ok(response);
         }
     }

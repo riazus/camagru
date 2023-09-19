@@ -6,7 +6,6 @@ public class UpdateRequest
 {
     private string _password;
     private string _confirmPassword;
-    private string _role;
     private string _email;
     
     public string Title { get; set; }
