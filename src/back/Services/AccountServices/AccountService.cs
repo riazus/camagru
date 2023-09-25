@@ -195,7 +195,7 @@ public class AccountService : IAccountService
     public IEnumerable<AccountResponse> GetAll()
     {
         var accounts = _context.Accounts;
-        return _mapper.Map(accounts, new List<AccountResponse>());
+        return _mapper.Map<Account, AccountResponse>(accounts, new List<AccountResponse>());
     }
 
     public AccountResponse GetById(int id)

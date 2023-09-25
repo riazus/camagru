@@ -9,7 +9,7 @@ namespace back.Helpers
         where TDestination : class;
         public IList<TDestination> Map<TSource, TDestination>(IEnumerable<TSource> source, IList<TDestination> destination)
         where TSource : class
-        where TDestination : class;
+        where TDestination : class, new();
     }
 
     public class Mapper : IMapper
@@ -42,9 +42,24 @@ namespace back.Helpers
 
         public IList<TDestination> Map<TSource, TDestination>(IEnumerable<TSource> source, IList<TDestination> destination)
             where TSource : class
-            where TDestination : class
+            where TDestination : class, new()
         {
-            throw new NotImplementedException();
+            if (source == null || destination == null)
+            {
+                throw new ArgumentNullException("Source and destination objects must not be null.");
+            }
+
+            // Clear the destination list if it's not already empty
+            destination.Clear();
+
+            foreach (var sourceItem in source)
+            {
+                var destinationItem = new TDestination();
+                destinationItem = Map(sourceItem, destinationItem);
+                destination.Add(destinationItem);
+            }
+
+            return destination;
         }
     }
 }
