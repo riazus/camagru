@@ -63,6 +63,13 @@ using (var scope = app.Services.CreateScope())
     app.UseMiddleware<JwtMiddleware>();
 
     app.MapControllers();
+
+    // enable using statics js files
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+    app.UseHttpsRedirection();
+    app.UseRouting();
+    app.MapFallbackToFile("index.html");
 }
 
 app.Run("http://localhost:4000");

@@ -94,6 +94,7 @@ namespace back.Controllers
             return Ok(new { message = "Password reset successful, you can now login" });
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public ActionResult<IEnumerable<AccountResponse>> GetAll()
         {
