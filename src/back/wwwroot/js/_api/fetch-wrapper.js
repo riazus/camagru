@@ -22,6 +22,7 @@ function post(url, body) {
     credentials: 'include',
     body: JSON.stringify(body)
   };
+  //console.log(body, requestOptions);
   return fetch(url, requestOptions).then(handleResponse);
 }
 
@@ -48,13 +49,14 @@ function authHeader(url) {
   // return auth header with jwt if user is logged in and request is to the api url
   const user = JSON.parse(localStorage.getItem('currentUser'));
   console.log(`authHeader(${url})`);
-  console.log(user);
+  //alert(`authHeader(${url})`);
+  //console.log(user);
   const isLoggedIn = user && user.jwtToken;
-  const isApiUrl = url.startsWith("http://localhost:4000");
+  //const isApiUrl = url.startsWith("http://localhost:4000");
   
-  if (isLoggedIn && isApiUrl) {
-    console.log("AUTHORIZED");
-    console.log(user.jwtToken);
+  if (isLoggedIn) {
+    //console.log("AUTHORIZED");
+    //console.log(user.jwtToken);
     return { Authorization: `Bearer ${user.jwtToken}` };
   } else {
     console.log("NOT AUTHORIZED");

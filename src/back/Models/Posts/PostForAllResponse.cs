@@ -7,7 +7,7 @@ namespace back.Models.Posts
         [Required]
         public string ImageUrl { get; set; }
         [Required]
-        public string FirstName { get; set; }
+        public string Username { get; set; }
         [Required]
         public int Likes { get; set; }
     }

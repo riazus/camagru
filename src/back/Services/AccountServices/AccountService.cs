@@ -43,8 +43,10 @@ public class AccountService : IAccountService
         var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
 
         // validate
-        if (account == null || !account.IsVerified || !_passwordHasher.Verify(account.PasswordHash, model.Password))
-            throw new AppException("Email or password is incorrect");
+        if (account == null || !account.IsVerified)
+            throw new AppException("Email is incorrect");
+        if (!_passwordHasher.Verify(account.PasswordHash, model.Password))
+            throw new AppException("Password is incorrect");
 
         // authentication successful so generate jwt and refresh tokens
         var jwtToken = _jwtUtils.GenerateJwtToken(account);

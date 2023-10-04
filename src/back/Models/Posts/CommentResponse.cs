@@ -7,9 +7,7 @@ namespace back.Models.Posts
         [Required]
         public string Comment { get; set; }
         [Required]
-        public string FirstName { get; set; }
-        [Required]
-        public string LastName { get; set; }
+        public string Username { get; set; }
         [Required]
         public DateTime CreateDate { get; set; }
     }

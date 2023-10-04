@@ -45,8 +45,7 @@ namespace back.Services.PostService
                 Id = post.Id,
                 Comments = post.Comments,
                 CreateDate = post.CreateDate,
-                FirstName = post.Account.FirstName,
-                LastName = post.Account.LastName,
+                Username = post.Account.Username,
                 Likes = post.Likes,
                 ImagePath = uniqueFileName,
             };
@@ -78,7 +77,7 @@ namespace back.Services.PostService
                 response.Add(new PostForAllResponse()
                 {
                     ImageUrl = post.ImagePath,
-                    FirstName = post.Account.FirstName,
+                    Username = post.Account.Username,
                     Likes = post.Likes
                 });
             }
@@ -95,7 +94,7 @@ namespace back.Services.PostService
             var response = new PostForAllResponse()
             {
                 ImageUrl = post.ImagePath,
-                FirstName = post.Account.FirstName,
+                Username = post.Account.Username,
                 Likes = post.Likes
             };
 
@@ -115,8 +114,7 @@ namespace back.Services.PostService
                     Id = post.Id,
                     CreateDate = post.CreateDate,
                     Likes = post.Likes,
-                    FirstName = currUser.FirstName,
-                    LastName = currUser.LastName,
+                    Username = currUser.Username,
                     Comments = post.Comments,
                     ImagePath = post.ImagePath,
                 });
@@ -136,8 +134,7 @@ namespace back.Services.PostService
                 Id = post.Id,
                 CreateDate = post.CreateDate,
                 Likes = post.Likes,
-                FirstName = currUser.FirstName,
-                LastName = currUser.LastName,
+                Username = currUser.Username,
                 Comments = post.Comments,
                 ImagePath = post.ImagePath,
             };
@@ -171,8 +168,7 @@ namespace back.Services.PostService
             {
                 Comment = commentary.Content,
                 CreateDate = commentary.CreatedDate,
-                FirstName = currUser.FirstName,
-                LastName = currUser.LastName,
+                Username = currUser.Username,
             };
 
             return response;

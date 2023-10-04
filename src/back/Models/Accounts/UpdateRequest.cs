@@ -8,9 +8,7 @@ public class UpdateRequest
     private string _confirmPassword;
     private string _email;
     
-    public string Title { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    public string Username { get; set; }
 
     [EmailAddress]
     public string Email
