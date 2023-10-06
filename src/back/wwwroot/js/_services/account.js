@@ -7,7 +7,9 @@ export const accountService = {
   login,
   logout,
   register,
-  verifyEmail
+  verifyEmail,
+  forgotPassword,
+  resetPassword
 }
 
 function refreshToken() {
@@ -50,8 +52,15 @@ function verifyEmail(token) {
   return fetchWrapper.post(`${baseUrl}/verify-email`, { token });
 }
 
-// helper functions
+function forgotPassword(email) {
+  return fetchWrapper.post(`${baseUrl}/forgot-password`, { email });
+}
 
+function resetPassword({ token, password, confirmPassword }) {
+  return fetchWrapper.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
+}
+
+//#region helper functions
 let refreshTokenTimeout;
 
 function startRefreshTokenTimer() {
@@ -70,3 +79,4 @@ function startRefreshTokenTimer() {
 function stopRefreshTokenTimer() {
     clearTimeout(refreshTokenTimeout);
 }
+//#endregion

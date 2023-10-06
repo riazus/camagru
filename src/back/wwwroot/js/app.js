@@ -136,8 +136,40 @@ document.addEventListener("submit", async (event) => {
     } catch(error) {
       alert(error);
     }
-  }
+  } else if (event.target.id === "forgot-password-form") {
+    checkRequired([emailInput]);
+    checkEmail(emailInput);
+    if (!isFormValid) {return;}
 
+    try {
+      await accountService.forgotPassword(emailInput.value);
+      localStorage.setItem("reset-password-sent", "true");
+      alert("Email instructions sent successfully!");
+    } catch(error) {
+      alert(error);
+    }
+  } else if (event.target.id === "reset-password-form") {
+    checkRequired([passwordInput, password2Input]);
+    checkPassword(passwordInput);
+    checkPassword(password2Input);
+    checkPasswordsMatch(passwordInput, password2Input);
+    if (!isFormValid) {return;}
+
+    try {
+      const resetToken = localStorage.getItem("reset-token");
+      await accountService.resetPassword({
+        token: resetToken,
+        password: passwordInput.value,
+        confirmPassword: password2Input.value
+      });
+      localStorage.removeItem("reset-password-sent");
+      localStorage.removeItem("reset-token");
+      alert("Password reseted successfully, now you can LogIn!");
+      window.location.replace("/login");
+    } catch(error) {
+      alert(error);
+    }
+  }
 });
 
 document.addEventListener('click', (e) => {
@@ -204,6 +236,20 @@ const urlRoutes = {
     headerLink: 'register.html',
     mainLink: 'email-verified.html',
     footerLink: ''
+  },
+  '/forgot-password': {
+    name: '/forgot-password',
+    title: 'Camagru | Forgot',
+    headerLink: 'register.html',
+    mainLink: 'forgot-password.html',
+    footerLink: ''
+  },
+  '/reset-password': {
+    name: '/reset-password',
+    title: 'Camagru | Reset',
+    headerLink: '',
+    mainLink: 'reset-password.html',
+    footerLink: ''
   }
 }
 
@@ -214,12 +260,13 @@ const afterPageLoad = async (location) => {
 
   //MAINS
   if (location === '/verify-email') {
-    
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("verification-token");
 
     try {
       alert(token);
       await accountService.verifyEmail(token);
+      localStorage.removeItem("verification-token");
+      localStorage.removeItem("verification-sent");
       const header = document.getElementById("verify-header");
       header.textContent = "Email verified successfully, you can login now!";
 
@@ -231,7 +278,6 @@ const afterPageLoad = async (location) => {
 
 const urlRoute = (event) => {
   event.preventDefault();
-  //console.log(event.target.href);
   const absoluteURL = event.target.href;
   let relativePath;
 
@@ -318,6 +364,8 @@ const changeRoute = async (route) => {
     route = currUser ? urlRoutes["/"] : urlRoutes["/login"];
   } else if (route.name === '/register') {
     route = currUser ? urlRoutes["/"] : urlRoutes["/register"];
+  } else if (route.name === '/forgot-password') {
+    route = currUser ? urlRoutes["/"] : urlRoutes["/forgot-password"];
   } else if (route.name === '/verification-sent') {
     const isVerificationSent = localStorage.getItem("verification-sent");
     route = isVerificationSent === "true" ? urlRoutes["/verification-sent"] : urlRoutes["/visitor"];
@@ -326,8 +374,18 @@ const changeRoute = async (route) => {
     if (isVerificationSent) {
       const url = new URL(window.location.href);
       const token = url.searchParams.get("token");
-      localStorage.setItem("token", token);
+      localStorage.setItem("verification-token", token);
       route = urlRoutes["/verify-email"];
+    } else {
+      route = urlRoutes["/403"];
+    }
+  } else if (route.name === '/reset-password') {
+    const isResetSent = localStorage.getItem("reset-password-sent");
+    if (isResetSent) {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get("token");
+      localStorage.setItem("reset-token", token);
+      route = urlRoutes["/reset-password"];
     } else {
       route = urlRoutes["/403"];
     }

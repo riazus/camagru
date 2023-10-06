@@ -160,10 +160,8 @@ public class AccountService : IAccountService
 
     public void ForgotPassword(ForgotPasswordRequest model, string origin)
     {
-        var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email);
-
-        // always return ok response to prevent email enumeration
-        if (account == null) return;
+        var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email)
+            ?? throw new AppException($"Email '{model.Email}' not found");
 
         // create reset token that expires after 1 day
         account.ResetToken = generateResetToken();
@@ -387,9 +385,9 @@ public class AccountService : IAccountService
     {
         string message;
         if (!string.IsNullOrEmpty(origin))
-            message = $@"<p>If you don't know your password please visit the <a href=""{origin}/account/forgot-password"">forgot password</a> page.</p>";
+            message = $@"<p>If you don't know your password please visit the <a href=""{origin}/forgot-password"">forgot password</a> page.</p>";
         else
-            message = "<p>If you don't know your password you can reset it via the <code>/accounts/forgot-password</code> api route.</p>";
+            message = "<p>If you don't know your password you can reset it via the <code>/forgot-password</code> api route.</p>";
 
         _emailService.Send(
             to: email,
@@ -405,9 +403,9 @@ public class AccountService : IAccountService
         string message;
         if (!string.IsNullOrEmpty(origin))
         {
-            var resetUrl = $"{origin}/account/reset-password?token={account.ResetToken}";
+            var resetUrl = $"{origin}/reset-password?token={account.ResetToken}";
             message = $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                            <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
+                            <p><a href=""{resetUrl}"">Click here</a></p>";
         }
         else
         {
