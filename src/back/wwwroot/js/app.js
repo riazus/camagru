@@ -6,8 +6,13 @@ document.addEventListener("click", async (event) => {
   }
 
   if (event.target.id === "signout-button") {
-    await accountService.logout();
-    window.location.replace("/visitor");
+    try {
+      await accountService.logout();
+      //alert();
+      window.location.replace("/visitor");
+    } catch (error) {
+      alert(error);
+    }
   }
 });
 
@@ -125,6 +130,8 @@ document.addEventListener("submit", async (event) => {
         'password': passwordInput.value,
         'confirmpassword': password2Input.value
       });
+
+      localStorage.setItem("verification-sent", "true");
       window.location.replace("/verification-sent");
     } catch(error) {
       alert(error);
@@ -142,6 +149,13 @@ document.addEventListener('click', (e) => {
 });
 
 const urlRoutes = {
+  '/403': {
+    name: '/403',
+    title: 'Camagru | Forbidden',
+    headerLink: '',
+    mainLink: '403.html',
+    footerLink: ''
+  },
   '/404': {
     name: '/404',
     title: 'Camagru | Not found',
@@ -178,10 +192,17 @@ const urlRoutes = {
     footerLink: ''
   },
   '/verification-sent': {
-    name: 'verification-sent',
+    name: '/verification-sent',
     title: 'Camagru | Verify',
     headerLink: '',
     mainLink: 'verification-sent.html',
+    footerLink: ''
+  },
+  '/verify-email': {
+    name: '/verify-email',
+    title: 'Camagru | Verify',
+    headerLink: 'register.html',
+    mainLink: 'email-verified.html',
     footerLink: ''
   }
 }
@@ -192,7 +213,20 @@ const afterPageLoad = async (location) => {
   //FOOTER
 
   //MAINS
+  if (location === '/verify-email') {
+    
+    const token = localStorage.getItem("token");
 
+    try {
+      alert(token);
+      await accountService.verifyEmail(token);
+      const header = document.getElementById("verify-header");
+      header.textContent = "Email verified successfully, you can login now!";
+
+    } catch (error) {
+      window.location.replace("/403");
+    }
+  }
 }
 
 const urlRoute = (event) => {
@@ -232,7 +266,7 @@ const urlLocationHandler = async (pathname) => {
   // TODO: DELETE
   // NEED FOR LIVE SERVER
   //location = location.replace('/src/back/wwwroot', '');
-
+  
   let route = urlRoutes[location] || urlRoutes["/404"];
   route = await changeRoute(route);
 
@@ -277,7 +311,6 @@ const urlLocationHandler = async (pathname) => {
 const changeRoute = async (route) => {
   accountService.refreshToken();
   const currUser = JSON.parse(localStorage.getItem('currentUser'));
-  //const currUser = undefined;
 
   if (route.name === '/' || route.name === '/visitor') {
     route = currUser ? urlRoutes["/"] : urlRoutes["/visitor"];
@@ -286,7 +319,18 @@ const changeRoute = async (route) => {
   } else if (route.name === '/register') {
     route = currUser ? urlRoutes["/"] : urlRoutes["/register"];
   } else if (route.name === '/verification-sent') {
-    route = currUser ? urlRoutes["/verification-sent"] : urlRoutes["/visitor"];
+    const isVerificationSent = localStorage.getItem("verification-sent");
+    route = isVerificationSent === "true" ? urlRoutes["/verification-sent"] : urlRoutes["/visitor"];
+  } else if (route.name === '/verify-email') {
+    const isVerificationSent = localStorage.getItem("verification-sent");
+    if (isVerificationSent) {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get("token");
+      localStorage.setItem("token", token);
+      route = urlRoutes["/verify-email"];
+    } else {
+      route = urlRoutes["/403"];
+    }
   }
 
   return route;

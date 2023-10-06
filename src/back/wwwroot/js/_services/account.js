@@ -6,7 +6,8 @@ export const accountService = {
   refreshToken,
   login,
   logout,
-  register
+  register,
+  verifyEmail
 }
 
 function refreshToken() {
@@ -34,15 +35,19 @@ function login(email, password) {
       });
 }
 
-function logout() {
+async function logout() {
   // revoke token, stop refresh timer, publish null to user subscribers and redirect to login page
-  fetchWrapper.post(`${baseUrl}/revoke-token`, {})
+  await fetchWrapper.post(`${baseUrl}/revoke-token`, {});
   localStorage.removeItem('currentUser');
   stopRefreshTokenTimer();
 }
 
 function register(params) {
   return fetchWrapper.post(`${baseUrl}/register`, params);
+}
+
+function verifyEmail(token) {
+  return fetchWrapper.post(`${baseUrl}/verify-email`, { token });
 }
 
 // helper functions
