@@ -1,0 +1,19 @@
+#header-section {
+  padding: 10px;
+  background: #333;
+  margin-bottom: 50px;
+  /* position: relative;
+  z-index: 1; */
+}
+
+.navbar a {
+  color: #f1f1f1;
+  font-size: 20px;
+  text-decoration: none;
+  margin: 10px;
+}
+
+#home-link {
+  font-family: 'Great Vibes', sans-serif;
+  font-size: 35px;
+}
