@@ -5,9 +5,15 @@
 }
 
 .navbar {
-  color: aqua;
-  background-color: white;
-  text-align: center;
+  padding: 20px;
+  background: #333;
+}
+
+.navbar a {
+  color: #f1f1f1;
+  font-size: 20px;
+  text-decoration: none;
+  margin:0 10px;
 }
 
 .footer {
@@ -20,9 +26,6 @@
 body {
   background-color: #f9fafb;
   font-family: 'Open Sans', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
   margin: 0;
 }
