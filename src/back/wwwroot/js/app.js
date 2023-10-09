@@ -14,15 +14,27 @@ document.addEventListener("click", async (event) => {
   if (!event.target.matches("button")) {
     return;
   }
-
+ 
   if (event.target.id === "signout-button") {
     try {
       await accountService.logout();
-      //alert();
       window.location.replace("/login");
     } catch (error) {
       alert(error);
     }
+  } else if (event.target.id === "home-button") {
+    if (window.location.pathname === '/') {return;}
+
+    window.location.replace('/');
+
+  } else if (event.target.id === "create-post-button") {
+    if (window.location.pathname === '/create-post') {return;}
+
+    window.location.replace('/create-post');
+  } else if (event.target.id === "settings-button") {
+    if (window.location.pathname === '/settings') {return;}
+
+    window.location.replace('/settings');
   }
 });
 
@@ -239,7 +251,8 @@ const urlRoutes = {
     title: 'Camagru',
     headerLink: 'home.html',
     mainLink: 'home.html',
-    footerLink: ''
+    footerLink: '',
+    navbarLink: 'navbar.html'
   },
   '/verification-sent': {
     name: '/verification-sent',
@@ -268,12 +281,32 @@ const urlRoutes = {
     headerLink: '',
     mainLink: 'reset-password.html',
     footerLink: ''
+  },
+  '/create-post': {
+    name: '/create-post',
+    title: 'Camagru | New Post',
+    headerLink: 'home.html',
+    mainLink: 'create-post.html',
+    footerLink: ''
+  },
+  '/settings': {
+    name: '/settings',
+    title: 'Camagru | Settings',
+    headerLink: 'home.html',
+    mainLink: 'settings.html',
+    footerLink: ''
   }
 }
 
 const afterPageLoad = async (location) => {
   //HEADER
+  if (location === '/') {
 
+  } else if (location === '/create-post') {
+
+  } else if (location === '/settings') {
+
+  }
   //FOOTER
 
   //MAINS
@@ -384,6 +417,10 @@ const changeRoute = async (route) => {
     route = currUser ? urlRoutes["/"] : urlRoutes["/register"];
   } else if (route.name === '/forgot-password') {
     route = currUser ? urlRoutes["/"] : urlRoutes["/forgot-password"];
+  } else if (route.name === '/create-post') {
+    route = currUser ? urlRoutes["/create-post"] : urlRoutes["/visitor"];
+  } else if (route.name === '/settings') {
+    route = currUser ? urlRoutes["/settings"] : urlRoutes["/visitor"];
   } else if (route.name === '/verification-sent') {
     const isVerificationSent = localStorage.getItem("verification-sent");
     route = isVerificationSent === "true" ? urlRoutes["/verification-sent"] : urlRoutes["/visitor"];

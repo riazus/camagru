@@ -11,10 +11,6 @@
   padding: 0px 10px;
 }
 
-.right-links {
-  display: flex;
-}
-
 .navbar a {
   color: #f1f1f1;
   font-size: 20px;
@@ -48,6 +44,7 @@
   cursor: pointer;
   border: none;
   border-radius: 5px;
+  margin: 0px 5px;
   transition: background-color 0.5s;
 }
 
@@ -55,6 +52,6 @@
   background-color: blueviolet;
 }
 
-#signout-button svg {
+.navbar button svg {
   pointer-events: none;
 }
