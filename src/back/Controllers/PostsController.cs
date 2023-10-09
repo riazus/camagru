@@ -48,8 +48,8 @@ namespace back.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("by-chunk")]
-        public ActionResult<MyPostResponse> GetMyById(int? lastId)
+        [HttpGet("by-chunk/{lastId:int}")]
+        public ActionResult<MyPostResponse> GetChunk(int lastId)
         {
             var posts = _postService.GetChunk(lastId, Account);
             return Ok(posts);

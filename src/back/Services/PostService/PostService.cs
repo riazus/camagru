@@ -149,12 +149,12 @@ namespace back.Services.PostService
             };
         }
 
-        IEnumerable<MyPostResponse> IPostService.GetChunk(int? lastId, Account currUser)
+        IEnumerable<MyPostResponse> IPostService.GetChunk(int lastId, Account currUser)
         {
             var posts = _context.Posts.FromSqlInterpolated($@"
                     SELECT TOP 5 post.*
                     FROM dbo.Posts post 
-                    WHERE post.Id > {lastId ?? 0} 
+                    WHERE post.Id > {lastId} 
                     ORDER BY CreateDate ASC")
                 .Include(p => p.Account)
                 .ToList();
