@@ -1,5 +1,15 @@
 import { accountService } from "./_services/account.js";
 
+const buttonLoadingOn = (button) => {
+  if (!button) {return;}
+  button.classList.toggle('button--loading');
+}
+
+const buttonLoadingOff = async (button, removeDisabled = true) => {
+  if (!button) {return;}
+  button.classList.toggle('button--loading');
+}
+
 document.addEventListener("click", async (event) => {
   if (!event.target.matches("button")) {
     return;
@@ -9,7 +19,7 @@ document.addEventListener("click", async (event) => {
     try {
       await accountService.logout();
       //alert();
-      window.location.replace("/visitor");
+      window.location.replace("/login");
     } catch (error) {
       alert(error);
     }
@@ -22,6 +32,8 @@ document.addEventListener("submit", async (event) => {
   }
 
   event.preventDefault();
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  buttonLoadingOn(submitButton);
   let isFormValid = true;
   const formData = new FormData(event.target);
   const emailInput = document.getElementById("email");
@@ -104,16 +116,16 @@ document.addEventListener("submit", async (event) => {
   if (event.target.id === "login-form") {
     checkRequired([emailInput, passwordInput]);
     checkEmail(emailInput);
-    if (!isFormValid) {return;}
+    if (!isFormValid) {buttonLoadingOff(submitButton);return;}
 
     try {
       await accountService.login(emailInput.value, passwordInput.value);
       window.location.replace("/");
+      buttonLoadingOff(submitButton);
     } catch(error) {
       alert(error);
+      buttonLoadingOff(submitButton);
     }
-    
-
   } else if (event.target.id === "register-form") {
     checkRequired([usernameInput, emailInput, passwordInput, password2Input]);
     checkLength(usernameInput, 3, 15);
@@ -121,7 +133,7 @@ document.addEventListener("submit", async (event) => {
     checkPassword(passwordInput);
     checkPassword(password2Input);
     checkPasswordsMatch(passwordInput, password2Input);
-    if (!isFormValid) {return;}
+    if (!isFormValid) {buttonLoadingOff(submitButton);return;}
 
     try {
       await accountService.register({
@@ -133,27 +145,31 @@ document.addEventListener("submit", async (event) => {
 
       localStorage.setItem("verification-sent", "true");
       window.location.replace("/verification-sent");
+      buttonLoadingOff(submitButton);
     } catch(error) {
       alert(error);
+      buttonLoadingOff(submitButton);
     }
   } else if (event.target.id === "forgot-password-form") {
     checkRequired([emailInput]);
     checkEmail(emailInput);
-    if (!isFormValid) {return;}
+    if (!isFormValid) {buttonLoadingOff(submitButton);return;}
 
     try {
       await accountService.forgotPassword(emailInput.value);
       localStorage.setItem("reset-password-sent", "true");
       alert("Email instructions sent successfully!");
+      buttonLoadingOff(submitButton);
     } catch(error) {
       alert(error);
+      buttonLoadingOff(submitButton);
     }
   } else if (event.target.id === "reset-password-form") {
     checkRequired([passwordInput, password2Input]);
     checkPassword(passwordInput);
     checkPassword(password2Input);
     checkPasswordsMatch(passwordInput, password2Input);
-    if (!isFormValid) {return;}
+    if (!isFormValid) {buttonLoadingOff(submitButton);return;}
 
     try {
       const resetToken = localStorage.getItem("reset-token");
@@ -166,8 +182,10 @@ document.addEventListener("submit", async (event) => {
       localStorage.removeItem("reset-token");
       alert("Password reseted successfully, now you can LogIn!");
       window.location.replace("/login");
+      buttonLoadingOff(submitButton);
     } catch(error) {
       alert(error);
+      buttonLoadingOff(submitButton);
     }
   }
 });
