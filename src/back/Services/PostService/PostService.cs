@@ -1,6 +1,7 @@
 ﻿using back.Data;
 using back.Entities;
 using back.Models.Posts;
+using Microsoft.EntityFrameworkCore;
 
 namespace back.Services.PostService
 {
@@ -69,7 +70,14 @@ namespace back.Services.PostService
 
         public IEnumerable<PostForAllResponse> GetAll()
         {
-            var posts = _context.Posts;
+            var posts = _context.Posts
+                .Select(o => new
+                {
+                    o.ImagePath,
+                    o.Account.Username,
+                    o.Likes,
+                }).ToList()
+                ?? throw new KeyNotFoundException("Posts not found");
             List<PostForAllResponse> response = new List<PostForAllResponse>();
 
             foreach(var post in posts)
@@ -77,7 +85,7 @@ namespace back.Services.PostService
                 response.Add(new PostForAllResponse()
                 {
                     ImageUrl = post.ImagePath,
-                    Username = post.Account.Username,
+                    Username = post.Username,
                     Likes = post.Likes
                 });
             }
@@ -105,6 +113,7 @@ namespace back.Services.PostService
         {
             var posts = _context.Posts
                 .Where(p => p.Account.Id == currUser.Id);
+
             List<MyPostResponse> result = new List<MyPostResponse>();
 
             foreach (var post in posts)
@@ -138,6 +147,34 @@ namespace back.Services.PostService
                 Comments = post.Comments,
                 ImagePath = post.ImagePath,
             };
+        }
+
+        IEnumerable<MyPostResponse> IPostService.GetChunk(int? lastId, Account currUser)
+        {
+            var posts = _context.Posts.FromSqlInterpolated($@"
+                    SELECT TOP 5 post.*
+                    FROM dbo.Posts post 
+                    WHERE post.Id > {lastId ?? 0} 
+                    ORDER BY CreateDate ASC")
+                .Include(p => p.Account)
+                .ToList();
+
+            List<MyPostResponse> result = new List<MyPostResponse>();
+
+            foreach (var post in posts)
+            {
+                result.Add(new MyPostResponse()
+                {
+                    Id = post.Id,
+                    CreateDate = post.CreateDate,
+                    Likes = post.Likes,
+                    Username = post.Account.Username,
+                    Comments = post.Comments,
+                    ImagePath = post.ImagePath,
+                });
+            }
+
+            return result;
         }
 
         public void Like(int id)

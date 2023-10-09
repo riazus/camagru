@@ -47,6 +47,14 @@ namespace back.Controllers
             return Ok(post);
         }
 
+        [AllowAnonymous]
+        [HttpGet("by-chunk")]
+        public ActionResult<MyPostResponse> GetMyById(int? lastId)
+        {
+            var posts = _postService.GetChunk(lastId, Account);
+            return Ok(posts);
+        }
+
         [HttpPost]
         public ActionResult<MyPostResponse> Create([FromForm] CreateRequest model)
         {

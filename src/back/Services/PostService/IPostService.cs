@@ -9,6 +9,7 @@ namespace back.Services.PostService
         IEnumerable<MyPostResponse> GetMyAll(Account currUser);
         PostForAllResponse GetForAllById(int id);
         MyPostResponse GetMyById(int postId, Account currUser);
+        IEnumerable<MyPostResponse> GetChunk(int? lastId, Account currUser);
         MyPostResponse Create(CreateRequest model, Account currUser);
         void Like(int id);
         void Dislike(int id);
