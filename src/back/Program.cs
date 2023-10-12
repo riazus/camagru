@@ -5,6 +5,7 @@ using back.Services.Email;
 using back.Services.PostService;
 using back.Services.UserServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,9 +65,15 @@ using (var scope = app.Services.CreateScope())
 
     app.MapControllers();
 
-    // enable using statics js files
-    app.UseDefaultFiles();
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(builder.Environment.ContentRootPath, "Images")),
+        RequestPath = "/Images"
+    });
+
     app.UseStaticFiles();
+
     app.UseHttpsRedirection();
     app.UseRouting();
     app.MapFallbackToFile("index.html");

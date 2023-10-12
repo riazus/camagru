@@ -23,7 +23,7 @@ namespace back.Services.PostService
                 Directory.CreateDirectory(ImageDirectory);
             }
 
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.FileName;
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.File.FileName;
             string imagePath = Path.Combine(ImageDirectory, uniqueFileName);
 
             using (Stream stream = new FileStream(imagePath, FileMode.Create))

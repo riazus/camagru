@@ -116,3 +116,21 @@ a {
   }
 }
 
+.post-container {
+  width: 300px;
+  border: 1px solid #ccc;
+  margin: 20px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.post-container img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.post-info {
+  display: flex;
+  justify-content: space-between;
+}

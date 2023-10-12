@@ -1,4 +1,66 @@
 import { accountService } from "./_services/account.js";
+import { postService } from "./_services/post.js";
+
+const determineDate = (dateString) => {
+  const date = new Date(dateString);
+  const currentDate = new Date();
+  const timeDifference = Math.abs(currentDate - date);
+
+  const minutesDifference = Math.floor(timeDifference / (1000 * 60));
+  const hoursDifference = Math.floor(timeDifference / (1000 * 60 * 60));
+  const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+
+  if (daysDifference > 0) {
+    return `${daysDifference} DAY${daysDifference > 1 ? 'S' : ''} AGO`;
+  } else if (hoursDifference > 0) {
+    return `${hoursDifference} HOUR${hoursDifference > 1 ? 'S' : ''} AGO`;
+  } else if (minutesDifference > 0) {
+    return `${minutesDifference} MINUTE${minutesDifference > 1 ? 'S' : ''} AGO`;
+  } else {
+    return 'RIGHT NOW';
+  }
+}
+
+const convertStringToElement = (htmlString) => {
+  const parser = new DOMParser();
+  const parsedDocument = parser.parseFromString(htmlString, 'text/html');
+  return parsedDocument.body.firstChild;
+}
+
+let lastPostId = null;
+const loadPosts = async (container, userId, reset = false) => {
+  let posts;
+  
+  if (reset) {
+    lastPostId = null;
+  }
+  
+  posts = await postService.getChunkPosts(lastPostId);
+
+  if (posts.length <= 0) {return;}
+
+  lastPostId = posts[posts.length - 1].id;
+
+  const postElement = convertStringToElement(await (await fetch(`html/mains/post.html`)).text());
+
+  for(let i = 0; i < posts.length; i++) {
+    const post = posts[i];
+    const newElement = postElement.cloneNode(true);
+
+    const creatorElement = newElement.querySelector('#creator-span');
+    const likesElement = newElement.querySelector('#likes-span');
+    const timeCreatedElement = newElement.querySelector('#time-created-span');
+    const imageElement = newElement.querySelector('#image-img');
+
+    creatorElement.textContent = post.username;
+    likesElement.textContent = `Likes ${post.likes}`;
+    timeCreatedElement.textContent = determineDate(post.createDate);
+    imageElement.src = 'images/' + post.imagePath;
+
+    container.appendChild(newElement);
+  }
+
+};
 
 const buttonLoadingOn = (button) => {
   if (!button) {return;}
@@ -325,6 +387,12 @@ const afterPageLoad = async (location) => {
       window.location.replace("/403");
     }
   }
+
+  if (location === '/' || location === '/visitor') {
+    const container = document.getElementById('main-posts');
+    await loadPosts(container, null, true);
+
+  }
 }
 
 const urlRoute = (event) => {
@@ -363,7 +431,7 @@ const urlLocationHandler = async (pathname) => {
   // TODO: DELETE
   // NEED FOR LIVE SERVER
   //location = location.replace('/src/back/wwwroot', '');
-  
+
   let route = urlRoutes[location] || urlRoutes["/404"];
   route = await changeRoute(route);
 
