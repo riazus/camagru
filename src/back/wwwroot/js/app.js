@@ -331,6 +331,45 @@ document.addEventListener("submit", async (event) => {
       alert(error);
       buttonLoadingOff(submitButton);
     }
+  } else if (event.target.id === "settings-form") {
+    let reloginRequired = false;
+
+    if (emailInput.value !== '') {
+      checkEmail(emailInput);
+      reloginRequired = true;
+    }
+    if (passwordInput.value !== '') {
+      checkPassword(passwordInput);
+      checkPassword(password2Input);
+      checkPasswordsMatch(passwordInput, password2Input);
+    }
+    if (usernameInput.value !== '') {
+      checkLength(usernameInput, 3, 15);
+    }
+    if (!isFormValid) {buttonLoadingOff(submitButton);return;}
+
+    try {
+      await accountService.update({
+        username: usernameInput.value,
+        email: emailInput.value,
+        password: passwordInput.value,
+        confirmPassword: password2Input.value
+      });
+
+      if (reloginRequired) {
+        alert("Profile updated successfully, now you need approve your email. See you :)");
+        await accountService.logout();
+        localStorage.setItem("verification-sent", "true");
+        window.location.replace("/verification-sent");
+      } else {
+        alert("Profile updated successfully!");
+        window.location.replace("/");
+      }
+      buttonLoadingOff(submitButton);
+    } catch {
+      alert(error);
+      buttonLoadingOff(submitButton);
+    }
   }
 });
 

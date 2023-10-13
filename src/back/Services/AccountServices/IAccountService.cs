@@ -1,4 +1,5 @@
-﻿using back.Models.Accounts;
+﻿using back.Entities;
+using back.Models.Accounts;
 
 namespace back.Services.UserServices
 {
@@ -15,7 +16,7 @@ namespace back.Services.UserServices
         IEnumerable<AccountResponse> GetAll();
         AccountResponse GetById(int id);
         AccountResponse Create(CreateRequest model);
-        AccountResponse Update(int id, UpdateRequest model);
+        AccountResponse Update(Account currUser, UpdateRequest model, string origin);
         void Delete(int id);
     }
 }

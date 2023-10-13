@@ -113,21 +113,10 @@ namespace back.Controllers
             return Ok(account);
         }
 
-        [HttpPost]
-        public ActionResult<AccountResponse> Create(CreateRequest model)
+        [HttpPut]
+        public ActionResult<AccountResponse> Update(UpdateRequest model)
         {
-            var account = _accountService.Create(model);
-            return Ok(account);
-        }
-
-        [HttpPut("{id:int}")]
-        public ActionResult<AccountResponse> Update(int id, UpdateRequest model)
-        {
-            // users can update their own account
-            if (id != Account.Id)
-                return Unauthorized(new { message = "Unauthorized" });
-
-            var account = _accountService.Update(id, model);
+            var account = _accountService.Update(Account, model, Request.Headers["origin"]);
             return Ok(account);
         }
 

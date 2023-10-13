@@ -146,10 +146,8 @@ public class AccountService : IAccountService
 
     public void VerifyEmail(string token)
     {
-        var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token);
-
-        if (account == null)
-            throw new AppException("Verification failed");
+        var account = _context.Accounts.SingleOrDefault(x => x.VerificationToken == token) 
+            ?? throw new AppException("Verification failed");
 
         account.Verified = DateTime.UtcNow;
         account.VerificationToken = null;
@@ -226,25 +224,41 @@ public class AccountService : IAccountService
         return _mapper.Map(account, new AccountResponse());
     }
 
-    public AccountResponse Update(int id, UpdateRequest model)
+    public AccountResponse Update(Account currUser, UpdateRequest model, string origin)
     {
-        var account = getAccount(id);
-
         // validate
-        if (account.Email != model.Email && _context.Accounts.Any(x => x.Email == model.Email))
-            throw new AppException($"Email '{model.Email}' is already registered");
-
+        bool isEmailChanged = false;
+        if (!string.IsNullOrEmpty(model.Email) && currUser.Email != model.Email)
+        {
+            isEmailChanged = true;
+            if (_context.Accounts.Any(x => x.Email == model.Email))
+            {
+                throw new AppException($"Email '{model.Email}' is already registered");
+            }
+        }
+            
         // hash password if it was entered
         if (!string.IsNullOrEmpty(model.Password))
-            account.PasswordHash = _passwordHasher.Hash(model.Password);
+        {
+            currUser.PasswordHash = _passwordHasher.Hash(model.Password);
+        }
+        if (isEmailChanged)
+        {
+            currUser.VerificationToken = generateVerificationToken();
+        }
 
         // copy model to account and save
-        _mapper.Map(model, account);
-        account.Updated = DateTime.UtcNow;
-        _context.Accounts.Update(account);
+        _mapper.MapOnlyNotNull(model, currUser);
+        currUser.Updated = DateTime.UtcNow;
+        _context.Accounts.Update(currUser);
         _context.SaveChanges();
 
-        return _mapper.Map(account, new AccountResponse());
+        if (isEmailChanged)
+        {
+            sendVerificationEmail(currUser, origin);
+        }
+
+        return _mapper.Map(currUser, new AccountResponse());
     }
 
     public void Delete(int id)

@@ -9,7 +9,8 @@ export const accountService = {
   register,
   verifyEmail,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  update
 }
 
 function refreshToken() {
@@ -58,6 +59,10 @@ function forgotPassword(email) {
 
 function resetPassword({ token, password, confirmPassword }) {
   return fetchWrapper.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
+}
+
+function update(params) {
+  return fetchWrapper.put(`${baseUrl}`, params);
 }
 
 //#region helper functions
