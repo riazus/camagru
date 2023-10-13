@@ -15,6 +15,7 @@ public class Account
     public DateTime Created { get; set; }
     public DateTime? Updated { get; set; }
     public List<RefreshToken> RefreshTokens { get; set; }
+    public virtual ICollection<PostUserLike> LikedPosts { get; set; }
 
     public bool OwnsToken(string token)
     {

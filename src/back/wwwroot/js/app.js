@@ -42,20 +42,46 @@ const loadPosts = async (container, userId, reset = false) => {
   lastPostId = posts[posts.length - 1].id;
 
   const postElement = convertStringToElement(await (await fetch(`html/mains/post.html`)).text());
+  
+  let isLogged = false;
+  const currUser = JSON.parse(localStorage.getItem('currentUser'));
+  if (currUser) {
+    isLogged = true;
+  }
 
   for(let i = 0; i < posts.length; i++) {
     const post = posts[i];
     const newElement = postElement.cloneNode(true);
 
     const creatorElement = newElement.querySelector('#creator-span');
-    const likesElement = newElement.querySelector('#likes-span');
+    const likeCountElement = newElement.querySelector('#likes-span');
     const timeCreatedElement = newElement.querySelector('#time-created-span');
     const imageElement = newElement.querySelector('#image-img');
+    const likeElement = newElement.querySelector('#like-button');
 
     creatorElement.textContent = post.username;
-    likesElement.textContent = `Likes ${post.likes}`;
+    likeCountElement.textContent = post.likes;
     timeCreatedElement.textContent = determineDate(post.createDate);
     imageElement.src = 'images/' + post.imagePath;
+
+    newElement.setAttribute('post-id', post.id.toString());
+
+    if (isLogged) {
+      likeElement.setAttribute('post-id', post.id.toString());
+      likeCountElement.setAttribute('post-id', post.id.toString());
+
+      const isUserLikedPost = await postService.isUserLikedPost(post.id);
+
+      if (isUserLikedPost.isLiked) {
+        const icon = likeElement.querySelector('#like-true');
+        icon.classList.remove('d-none');
+      } else {
+        const icon = likeElement.querySelector('#like-false');
+        icon.classList.remove('d-none');
+      }
+    } else {
+      likeElement.remove();
+    }
 
     container.appendChild(newElement);
   }
@@ -97,6 +123,24 @@ document.addEventListener("click", async (event) => {
     if (window.location.pathname === '/settings') {return;}
 
     window.location.replace('/settings');
+  } else if (event.target.id === 'like-button') {
+    const postId = event.target.getAttribute('post-id');
+    const likeCountElement = document.querySelector(`[post-id="${postId}"]#likes-span`);
+
+    const iconTrue = event.target.querySelector('#like-true');
+    const iconFalse = event.target.querySelector('#like-false');
+
+    if (iconTrue.classList.contains('d-none')) { // Like
+      await postService.like(postId);
+      iconTrue.classList.remove('d-none');
+      iconFalse.classList.add('d-none');
+      likeCountElement.textContent = (parseInt(likeCountElement.textContent) + 1).toString();
+    } else { // Remove like
+      await postService.dislike(postId);
+      iconTrue.classList.add('d-none');
+      iconFalse.classList.remove('d-none');
+      likeCountElement.textContent = (parseInt(likeCountElement.textContent) - 1).toString();
+    }
   }
 });
 

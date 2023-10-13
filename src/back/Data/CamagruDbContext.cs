@@ -15,6 +15,7 @@ namespace back.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Commentary> Comments { get; set; }
+        public DbSet<PostUserLike> PostUsersLike { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {

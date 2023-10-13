@@ -12,7 +12,7 @@ using back.Data;
 namespace back.Migrations
 {
     [DbContext(typeof(CamagruDbContext))]
-    [Migration("20231004192128_Initial")]
+    [Migration("20231013082346_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -105,11 +105,11 @@ namespace back.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("CreatorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -119,9 +119,32 @@ namespace back.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("CreatorId");
 
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("back.Entities.PostUserLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("PostId");
+
+                    b.ToTable("PostUsersLike");
                 });
 
             modelBuilder.Entity("back.Entities.Account", b =>
@@ -193,16 +216,42 @@ namespace back.Migrations
 
             modelBuilder.Entity("back.Entities.Post", b =>
                 {
-                    b.HasOne("back.Entities.Account", "Account")
+                    b.HasOne("back.Entities.Account", "Creator")
                         .WithMany()
-                        .HasForeignKey("AccountId");
+                        .HasForeignKey("CreatorId");
+
+                    b.Navigation("Creator");
+                });
+
+            modelBuilder.Entity("back.Entities.PostUserLike", b =>
+                {
+                    b.HasOne("back.Entities.Account", "Account")
+                        .WithMany("LikedPosts")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("back.Entities.Post", "Post")
+                        .WithMany("LikedByUsers")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Account");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("back.Entities.Account", b =>
+                {
+                    b.Navigation("LikedPosts");
                 });
 
             modelBuilder.Entity("back.Entities.Post", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("LikedByUsers");
                 });
 #pragma warning restore 612, 618
         }

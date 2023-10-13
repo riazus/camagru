@@ -34,7 +34,7 @@ namespace back.Services.PostService
             Post post = new Post
             {
                 CreateDate = DateTime.Now,
-                Account = currUser,
+                Creator = currUser,
                 ImagePath = uniqueFileName,
             };
 
@@ -46,7 +46,7 @@ namespace back.Services.PostService
                 Id = post.Id,
                 Comments = post.Comments,
                 CreateDate = post.CreateDate,
-                Username = post.Account.Username,
+                Username = post.Creator.Username,
                 Likes = post.Likes,
                 ImagePath = uniqueFileName,
             };
@@ -54,17 +54,21 @@ namespace back.Services.PostService
             return response;
         }
 
-        public void Dislike(int id)
+        public void Dislike(int id, Account currUser)
         {
             var post = _context.Posts
-                .FirstOrDefault(p => p.Id == id) ?? throw new KeyNotFoundException($"Post with id {id} not found");
+                .SingleOrDefault(p => p.Id == id) ?? throw new KeyNotFoundException($"Post with id {id} not found");
+            var existingLike = _context.PostUsersLike
+                .SingleOrDefault(l => l.PostId == id && l.AccountId == currUser.Id) 
+                ?? throw new KeyNotFoundException($"Existing like with postId {id} and userId {currUser.Id} not found");
 
             if (post.Likes > 0)
             {
                 post.Likes--;
             }
 
-            _context.Update(post);
+            _context.PostUsersLike.Remove(existingLike);
+            _context.Posts.Update(post);
             _context.SaveChanges();
         }
 
@@ -74,7 +78,7 @@ namespace back.Services.PostService
                 .Select(o => new
                 {
                     o.ImagePath,
-                    o.Account.Username,
+                    o.Creator.Username,
                     o.Likes,
                 }).ToList()
                 ?? throw new KeyNotFoundException("Posts not found");
@@ -97,12 +101,12 @@ namespace back.Services.PostService
         {
             var post = _context.Posts
                 .Where(p => p.Id == id)
-                .FirstOrDefault() ?? throw new KeyNotFoundException($"Post with id {id} not found");
+                .SingleOrDefault() ?? throw new KeyNotFoundException($"Post with id {id} not found");
 
             var response = new PostForAllResponse()
             {
                 ImageUrl = post.ImagePath,
-                Username = post.Account.Username,
+                Username = post.Creator.Username,
                 Likes = post.Likes
             };
 
@@ -112,7 +116,7 @@ namespace back.Services.PostService
         public IEnumerable<MyPostResponse> GetMyAll(Account currUser)
         {
             var posts = _context.Posts
-                .Where(p => p.Account.Id == currUser.Id);
+                .Where(p => p.Creator.Id == currUser.Id);
 
             List<MyPostResponse> result = new List<MyPostResponse>();
 
@@ -135,8 +139,8 @@ namespace back.Services.PostService
         public MyPostResponse GetMyById(int id, Account currUser)
         {
             var post = _context.Posts
-                .Where(p => p.Account.Id == currUser.Id && p.Id == id)
-                .FirstOrDefault() ?? throw new KeyNotFoundException($"Post with id {id} not found");
+                .Where(p => p.Creator.Id == currUser.Id && p.Id == id)
+                .SingleOrDefault() ?? throw new KeyNotFoundException($"Post with id {id} not found");
 
             return new MyPostResponse()
             {
@@ -156,7 +160,7 @@ namespace back.Services.PostService
                     FROM dbo.Posts post 
                     WHERE post.Id > {lastId} 
                     ORDER BY CreateDate ASC")
-                .Include(p => p.Account)
+                .Include(p => p.Creator)
                 .ToList();
 
             List<MyPostResponse> result = new List<MyPostResponse>();
@@ -168,7 +172,7 @@ namespace back.Services.PostService
                     Id = post.Id,
                     CreateDate = post.CreateDate,
                     Likes = post.Likes,
-                    Username = post.Account.Username,
+                    Username = post.Creator.Username,
                     Comments = post.Comments,
                     ImagePath = post.ImagePath,
                 });
@@ -177,21 +181,28 @@ namespace back.Services.PostService
             return result;
         }
 
-        public void Like(int id)
+        public void Like(int id, Account currUser)
         {
             var post = _context.Posts
-                .FirstOrDefault(p => p.Id == id) ?? throw new KeyNotFoundException($"Post with id {id} not found");
+                .SingleOrDefault(p => p.Id == id) ?? throw new KeyNotFoundException($"Post with id {id} not found");
 
             post.Likes++;
 
-            _context.Update(post);
+            var postUserLike = new PostUserLike
+            {
+                Post = post,
+                Account = currUser
+            };
+
+            _context.PostUsersLike.Add(postUserLike);
+            _context.Posts.Update(post);
             _context.SaveChanges();
         }
 
         public CommentResponse Comment(int postId, CommentRequest model, Account currUser)
         {
             var post = _context.Posts
-                .FirstOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
+                .SingleOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
 
             Commentary commentary = new()
             {
@@ -209,6 +220,21 @@ namespace back.Services.PostService
             };
 
             return response;
+        }
+
+        public IsLikedResponse IsUserLikedPost(int postId, int userId)
+        {
+            var postUserLike = _context.PostUsersLike
+                .SingleOrDefault(l => l.AccountId == userId && l.PostId == postId);
+
+            var isLikedResponse = new IsLikedResponse { IsLiked = true };
+
+            if (postUserLike == null)
+            {
+                isLikedResponse.IsLiked = false;
+            }
+
+            return isLikedResponse;
         }
     }
 }

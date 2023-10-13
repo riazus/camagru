@@ -65,14 +65,14 @@ namespace back.Controllers
         [HttpPut("like/{id:int}")]
         public ActionResult Like(int id)
         {
-            _postService.Like(id);
+            _postService.Like(id, Account);
             return Ok();
         }
 
         [HttpPut("dislike/{id:int}")]
         public ActionResult Dislike(int id)
         {
-            _postService.Dislike(id);
+            _postService.Dislike(id, Account);
             return Ok();
         }
 
@@ -80,6 +80,13 @@ namespace back.Controllers
         public ActionResult<CommentResponse> Comment(int id, CommentRequest model)
         {
             var response = _postService.Comment(id, model, Account);
+            return Ok(response);
+        }
+
+        [HttpGet("is-liked/{postId:int}")]
+        public ActionResult<IsLikedResponse> IsLiked(int postId)
+        {
+            var response = _postService.IsUserLikedPost(postId, Account.Id);
             return Ok(response);
         }
     }
