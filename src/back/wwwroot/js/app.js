@@ -88,6 +88,32 @@ const loadPosts = async (container, userId, reset = false) => {
 
 };
 
+// Scroll Event Listener
+let isScrolling = false;
+document.addEventListener('scroll', async () => {
+  if (isScrolling) {
+    return;
+  }
+  isScrolling = true;
+  if (window.location.pathname === '/' || window.location.pathname === '/visitor') {
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+    const footer = document.getElementById('footer-section');
+
+    if ((scrollTop + window.innerHeight) >= scrollHeight
+        && footer.classList.contains('d-none')) {
+      const container = document.getElementById('main-posts');
+      const beforeLoadCount = container.querySelectorAll("#post-container").length;
+      await loadPosts(container);
+      const afterLoadCount = container.querySelectorAll("#post-container").length;
+      if (afterLoadCount <= beforeLoadCount) {
+        footer.classList.remove('d-none');
+      }
+    }
+  }
+  isScrolling = false;
+});
+
 const buttonLoadingOn = (button) => {
   if (!button) {return;}
   button.classList.toggle('button--loading');
