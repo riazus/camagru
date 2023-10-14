@@ -97,10 +97,11 @@ document.addEventListener('scroll', async () => {
   isScrolling = true;
   if (window.location.pathname === '/' || window.location.pathname === '/visitor') {
     const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    const clientHeight = (document.documentElement && document.documentElement.clientHeight) || document.body.clientHeight;
     const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
     const footer = document.getElementById('footer-section');
 
-    if ((scrollTop + window.innerHeight) >= scrollHeight
+    if ((scrollTop + clientHeight + 5) >= scrollHeight
         && footer.classList.contains('d-none')) {
       const container = document.getElementById('main-posts');
       const beforeLoadCount = container.querySelectorAll("#post-container").length;
