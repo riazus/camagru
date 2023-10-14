@@ -15,3 +15,19 @@ body {
 .d-none {
   visibility: hidden;
 }
+
+.title-font {
+  font-family: 'Great Vibes', sans-serif;
+  user-select: none;
+  font-size: 35px;
+}
+
+.form-outline.form-white.mb-3.success input {
+  border-color: green;
+  border-width: 2px;
+}
+
+.form-outline.form-white.mb-3.error input {
+  border-color: rgb(183, 0, 0);
+  border-width: 2px;
+}

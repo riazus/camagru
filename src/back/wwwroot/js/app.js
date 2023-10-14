@@ -194,16 +194,15 @@ document.addEventListener("submit", async (event) => {
   function showError(input, message) {
     isFormValid = false;
     const formControl = input.parentElement;
-    formControl.className = 'form-control error';
-    const small = formControl.querySelector('small');
-    small.innerText = message;
+    formControl.className = 'form-outline form-white mb-3 error';
+    input.placeholder = message;
   }
 
   // Show success outline
   function showSuccess(input) {
     //isFormValid = true;
     const formControl = input.parentElement;
-    formControl.className = 'form-control success';
+    formControl.className = 'form-outline form-white mb-3 success';
   }
 
   function checkRequired(inputArr) {
@@ -266,6 +265,7 @@ document.addEventListener("submit", async (event) => {
     try {
       await accountService.login(emailInput.value, passwordInput.value);
       window.location.replace("/");
+      //alert("LOGIN!");
       buttonLoadingOff(submitButton);
     } catch(error) {
       alert(error);
