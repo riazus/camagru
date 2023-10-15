@@ -54,10 +54,10 @@ const loadPosts = async (container, userId, reset = false) => {
     const newElement = postElement.cloneNode(true);
 
     const creatorElement = newElement.querySelector('#creator-span');
-    const likeCountElement = newElement.querySelector('#likes-span');
-    const timeCreatedElement = newElement.querySelector('#time-created-span');
+    const likeCountElement = newElement.querySelector('#like-count');
+    const timeCreatedElement = newElement.querySelector('#post-date');
     const imageElement = newElement.querySelector('#image-img');
-    const likeElement = newElement.querySelector('#like-button');
+    const likeElement = newElement.querySelector('#like-post');
 
     creatorElement.textContent = post.username;
     likeCountElement.textContent = post.likes;
@@ -101,7 +101,7 @@ document.addEventListener('scroll', async () => {
     const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
     const footer = document.getElementById('footer-section');
 
-    if ((scrollTop + clientHeight + 5) >= scrollHeight
+    if ((scrollTop + clientHeight + 35) >= scrollHeight
         && footer.classList.contains('d-none')) {
       const container = document.getElementById('main-posts');
       const beforeLoadCount = container.querySelectorAll("#post-container").length;
@@ -501,6 +501,23 @@ const afterPageLoad = async (location) => {
   if (location === '/' || location === '/visitor') {
     const container = document.getElementById('main-posts');
     await loadPosts(container, null, true);
+    const post = document.getElementById('post-container');
+    const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+    const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+
+    if (!post) {
+      //const mainSection = document.getElementById('main-section');
+      //mainSection.classList.add('d-flex', 'flex-grow-1', 'align-items-center');
+      const looksEmptyElement = convertStringToElement(await (await fetch(`html/mains/looks-empty.html`)).text());
+      container.appendChild(looksEmptyElement);
+      const footer = document.getElementById('footer-section');
+      footer.classList.remove('d-none');
+    } else if  ((scrollTop + window.innerHeight) >= scrollHeight) {
+      const footer = document.getElementById('footer-section');
+      footer.classList.remove('d-none');
+      footer.classList.add('fixed-bottom');
+    }
+
 
   }
 }
