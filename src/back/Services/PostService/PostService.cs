@@ -2,6 +2,7 @@
 using back.Entities;
 using back.Models.Posts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace back.Services.PostService
 {
@@ -9,10 +10,12 @@ namespace back.Services.PostService
     {
         private readonly CamagruDbContext _context;
         private static readonly string ImageDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Images");
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public PostService(CamagruDbContext context) 
+        public PostService(CamagruDbContext context, IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         public MyPostResponse Create(CreateRequest model, Account currUser)
@@ -235,6 +238,16 @@ namespace back.Services.PostService
             }
 
             return isLikedResponse;
+        }
+
+        public IEnumerable<string> GetStickers()
+        {
+            string stickersFolderPath = Path.Combine(_hostingEnvironment.ContentRootPath, "wwwroot", "media", "stickers");
+            string[] stickerPaths = Directory.GetFiles(stickersFolderPath);
+
+            IEnumerable<string> fileNames = stickerPaths.Select(filePath => Path.GetFileName(filePath));
+
+            return fileNames;
         }
     }
 }

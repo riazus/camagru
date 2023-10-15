@@ -89,5 +89,12 @@ namespace back.Controllers
             var response = _postService.IsUserLikedPost(postId, Account.Id);
             return Ok(response);
         }
+
+        [HttpGet("stickers")]
+        public ActionResult<IEnumerable<string>> Stickers()
+        {
+            var response = _postService.GetStickers();
+            return Ok(response);
+        }
     }
 }

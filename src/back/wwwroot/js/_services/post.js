@@ -6,7 +6,8 @@ export const postService = {
   getChunkPosts,
   isUserLikedPost,
   like,
-  dislike
+  dislike,
+  getStickersName
 }
 
 function getChunkPosts(postId) {
@@ -23,4 +24,8 @@ function like(postId) {
 
 function dislike(postId) {
   return fetchWrapper.put(`${baseUrl}/dislike/${postId}`);
+}
+
+function getStickersName() {
+  return fetchWrapper.get(`${baseUrl}/stickers`);
 }

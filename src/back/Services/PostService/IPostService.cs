@@ -15,5 +15,6 @@ namespace back.Services.PostService
         void Dislike(int id, Account currUser);
         CommentResponse Comment(int postId, CommentRequest model, Account currUser);
         IsLikedResponse IsUserLikedPost(int postId, int userId);
+        IEnumerable<string> GetStickers();
     }
 }
