@@ -26,3 +26,69 @@ body {
   border-color: rgb(183, 0, 0);
   border-width: 2px;
 }
+
+/* These 2 needs to match each other */
+.fixed-row { 
+  position: relative;
+  height: 50vh;
+  object-fit: contain;
+}
+.fixed-height-img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.bg-dark {
+  background-color: #212529 !important;
+}
+
+.border-light {
+  border-color: #6c757d !important;
+}
+
+.bg-darker {
+  background-color: #181C1F;
+}
+
+input[type="comment"]:focus {
+  border-color: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.icon-button:focus {
+  border-color: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.sticker {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+.live-sticker {
+  padding: 0;
+  position: absolute;
+  border: 3px solid transparent;
+}
+
+.live-sticker:hover {
+  border-color: black;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  max-height: 25vh;
+  object-fit: contain;
+  cursor: pointer;
+}
+
+#live-sticker-container {
+  position: absolute;
+  z-index: 1;
+}
