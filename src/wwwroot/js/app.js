@@ -2,6 +2,15 @@ import { accountService } from "./_services/account.js";
 import { postService } from "./_services/post.js";
 
 //#region CREATEPOST.JS
+
+const pixelToPercentage = (px, parentSize) => { 
+  return px * 100 / parentSize; 
+} 
+ 
+const percentageToPixel = (percentage, parentSize) => { 
+  return percentage * parentSize / 100; 
+}
+
 let mediaStream = null;
 
 const stopWebcam = (videoElement, noWebcamElement, imageElement, liveStickerContainer) => {
