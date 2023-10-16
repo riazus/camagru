@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+.title-font {
+  font-family: 'Great Vibes', sans-serif;
+  user-select: none;
+  font-size: 35px;
+}
+
+.form-outline.form-white.mb-3.success input {
+  border-color: green;
+  border-width: 2px;
+}
+
+.form-outline.form-white.mb-3.error input {
+  border-color: rgb(183, 0, 0);
+  border-width: 2px;
+}
