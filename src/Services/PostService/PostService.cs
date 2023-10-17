@@ -2,11 +2,18 @@
 using back.Entities;
 using back.Models.Posts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.AspNetCore.Mvc;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.Diagnostics;
+using Org.BouncyCastle.Utilities.Zlib;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using static back.Models.Posts.UploadImageRequest;
+using System.Text.Json;
 
 namespace back.Services.PostService
 {
-    public class PostService : IPostService
+    public class PostService :  IPostService
     {
         private readonly CamagruDbContext _context;
         private static readonly string ImageDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Images");
@@ -18,27 +25,13 @@ namespace back.Services.PostService
             _hostingEnvironment = hostingEnvironment;
         }
 
-        public MyPostResponse Create(CreateRequest model, Account currUser)
+        public MyPostResponse Create(CreatePostRequest model, Account currUser)
         {
-            // Ensure the Images directory exists (create it if it doesn't)
-            if (!Directory.Exists(ImageDirectory))
-            {
-                Directory.CreateDirectory(ImageDirectory);
-            }
-
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.File.FileName;
-            string imagePath = Path.Combine(ImageDirectory, uniqueFileName);
-
-            using (Stream stream = new FileStream(imagePath, FileMode.Create))
-            {
-                model.File.CopyTo(stream);
-            }
-
             Post post = new Post
             {
                 CreateDate = DateTime.Now,
                 Creator = currUser,
-                ImagePath = uniqueFileName,
+                ImagePath = model.FileName,
             };
 
             _context.Posts.Add(post);
@@ -51,7 +44,7 @@ namespace back.Services.PostService
                 CreateDate = post.CreateDate,
                 Username = post.Creator.Username,
                 Likes = post.Likes,
-                ImagePath = uniqueFileName,
+                ImagePath = model.FileName,
             };
 
             return response;
@@ -248,6 +241,110 @@ namespace back.Services.PostService
             IEnumerable<string> fileNames = stickerPaths.Select(filePath => Path.GetFileName(filePath));
 
             return fileNames;
+        }
+
+        
+        public byte[] CreateAndSendImage(UploadImageRequest request)
+        {
+            /*var mergedImage = GetUserBitmapImage(request);
+            using MemoryStream outputStream = new MemoryStream();
+            mergedImage.Save(outputStream, ImageFormat.Png);
+            return outputStream.ToArray();*/
+            return GetUserBitmapImage(request);
+        }
+
+        public string UploadImageForUser(UploadImageRequest request)
+        {
+            return GetUserBitmapImage2(request);
+        }
+
+        public byte[] GetUserBitmapImage(UploadImageRequest request)
+        {
+            byte[] baseImageBytes = Convert.FromBase64String(request.BaseImage);
+            using MemoryStream baseImageStream = new MemoryStream(baseImageBytes);
+            using System.Drawing.Image baseImage = System.Drawing.Image.FromStream(baseImageStream);
+            int baseNewHeight = request.Height;
+            int baseNewWidth = (int)(baseImage.Width * ((double)baseNewHeight / baseImage.Height));
+            request.Stickers = JsonSerializer.Deserialize<StickerInformation[]>(request.StickerArray);
+
+            using Bitmap mergedImage = new Bitmap(baseNewWidth, baseNewHeight);
+            using (Graphics g = Graphics.FromImage(mergedImage))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                g.DrawImage(baseImage, 0, 0, baseNewWidth, baseNewHeight);
+
+                if (request.StickerArray != null)
+                {
+                    foreach (var sticker in request.Stickers)
+                    {
+                        byte[] stickerImageBytes = Convert.FromBase64String(sticker.image);
+                        using MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes);
+                        using System.Drawing.Image stickerImage = System.Drawing.Image.FromStream(stickerImageStream);
+                        int stickerNewWidth = sticker.width;
+                        int stickerNewHeight = sticker.height;
+                        int stickerX = sticker.x;
+                        int stickerY = sticker.y;
+
+                        g.DrawImage(stickerImage, stickerX, stickerY, stickerNewWidth, stickerNewHeight);
+                    }
+                }
+            }
+
+            using MemoryStream outputStream = new MemoryStream();
+            mergedImage.Save(outputStream, ImageFormat.Png);
+            return outputStream.ToArray();
+        }
+
+        public string GetUserBitmapImage2(UploadImageRequest request)
+        {
+            byte[] baseImageBytes = Convert.FromBase64String(request.BaseImage);
+            using MemoryStream baseImageStream = new MemoryStream(baseImageBytes);
+            using System.Drawing.Image baseImage = System.Drawing.Image.FromStream(baseImageStream);
+            int baseNewHeight = request.Height;
+            int baseNewWidth = (int)(baseImage.Width * ((double)baseNewHeight / baseImage.Height));
+            request.Stickers = JsonSerializer.Deserialize<StickerInformation[]>(request.StickerArray);
+
+            using Bitmap mergedImage = new Bitmap(baseNewWidth, baseNewHeight);
+            using (Graphics g = Graphics.FromImage(mergedImage))
+            {
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                g.DrawImage(baseImage, 0, 0, baseNewWidth, baseNewHeight);
+
+                if (request.StickerArray != null)
+                {
+                    foreach (var sticker in request.Stickers)
+                    {
+                        byte[] stickerImageBytes = Convert.FromBase64String(sticker.image);
+                        using MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes);
+                        using System.Drawing.Image stickerImage = System.Drawing.Image.FromStream(stickerImageStream);
+                        int stickerNewWidth = sticker.width;
+                        int stickerNewHeight = sticker.height;
+                        int stickerX = sticker.x;
+                        int stickerY = sticker.y;
+
+                        g.DrawImage(stickerImage, stickerX, stickerY, stickerNewWidth, stickerNewHeight);
+                    }
+                }
+            }
+
+            string fileName = $"{Guid.NewGuid()}_{request.UserId}.png";
+
+            if (!Directory.Exists(ImageDirectory))
+            {
+                Directory.CreateDirectory(ImageDirectory);
+            }
+
+            string filePath = Path.Combine(ImageDirectory, fileName);
+
+            mergedImage.Save(filePath, ImageFormat.Png);
+
+            return fileName;
         }
     }
 }

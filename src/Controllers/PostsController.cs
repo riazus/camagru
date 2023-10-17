@@ -2,6 +2,10 @@
 using back.Models.Posts;
 using back.Services.PostService;
 using Microsoft.AspNetCore.Mvc;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.Text.Json;
+using static back.Models.Posts.UploadImageRequest;
 
 namespace back.Controllers
 {
@@ -56,7 +60,7 @@ namespace back.Controllers
         }
 
         [HttpPost]
-        public ActionResult<MyPostResponse> Create([FromForm] CreateRequest model)
+        public ActionResult<MyPostResponse> Create(CreatePostRequest model)
         {
             var post = _postService.Create(model, Account);
             return Ok(post);
@@ -95,6 +99,21 @@ namespace back.Controllers
         {
             var response = _postService.GetStickers();
             return Ok(response);
+        }
+
+        [HttpPost("image-upload")]
+        public ActionResult UploadImage(UploadImageRequest request)
+        {
+            if (request.UserId != null)
+            {
+                var fileName = _postService.UploadImageForUser(request);
+                return Ok(new { fileName });
+            }
+            else
+            {
+                var userImageBytes = _postService.CreateAndSendImage(request);
+                return File(userImageBytes.ToArray(), "image/png");
+            }
         }
     }
 }

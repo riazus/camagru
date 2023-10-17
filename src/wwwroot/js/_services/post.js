@@ -7,8 +7,11 @@ export const postService = {
   isUserLikedPost,
   like,
   dislike,
-  getStickersName
-}
+  getStickersName,
+  uploadImage,
+  uploadImageForUser,
+  createNewPost,
+};
 
 function getChunkPosts(postId) {
   return fetchWrapper.get(`${baseUrl}/by-chunk/${postId ?? 0}`);
@@ -28,4 +31,16 @@ function dislike(postId) {
 
 function getStickersName() {
   return fetchWrapper.get(`${baseUrl}/stickers`);
+}
+
+function uploadImage(params) {
+  return fetchWrapper.post_file(`${baseUrl}/image-upload`, params);
+}
+
+function uploadImageForUser(params) {
+  return fetchWrapper.post(`${baseUrl}/image-upload`, params);
+}
+
+function createNewPost(params) {
+  return fetchWrapper.post(`${baseUrl}`, params);
 }
