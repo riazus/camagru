@@ -81,9 +81,9 @@ namespace back.Controllers
         }
 
         [HttpPost("comment/{id:int}")]
-        public ActionResult<CommentResponse> Comment(int id, CommentRequest model)
+        public ActionResult<CommentResponse> CreateComment(int id, CommentRequest model)
         {
-            var response = _postService.Comment(id, model, Account);
+            var response = _postService.CreateComment(id, model, Account);
             return Ok(response);
         }
 
@@ -114,6 +114,22 @@ namespace back.Controllers
                 var userImageBytes = _postService.CreateAndSendImage(request);
                 return File(userImageBytes.ToArray(), "image/png");
             }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("comment")]
+        public ActionResult GetComments(GetCommentsRequest getCommentsRequest)
+        {
+            var response = _postService.GetComments(getCommentsRequest);
+            return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("comment/count/{postId:int}")]
+        public ActionResult GetPostCommentsCount(int postId)
+        {
+            var commentsCount = _postService.GetPostCommentsCount(postId); 
+            return Ok(new { commentsCount });
         }
     }
 }

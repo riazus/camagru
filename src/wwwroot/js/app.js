@@ -856,15 +856,19 @@ const loadPosts = async (container, userId, reset = false) => {
     const timeCreatedElement = newElement.querySelector("#post-date");
     const imageElement = newElement.querySelector("#image-img");
     const likeElement = newElement.querySelector("#like-post");
+    const commentForm = newElement.querySelector("#comment-form");
+    const commentContainer = newElement.querySelector("#comment-container");
 
     creatorElement.textContent = post.username;
     likeCountElement.textContent = post.likes;
     timeCreatedElement.textContent = determineDate(post.createDate);
     imageElement.src = "images/" + post.imagePath;
+    commentContainer.setAttribute("post-id", post.id.toString());
 
     newElement.setAttribute("post-id", post.id.toString());
 
     if (isLogged) {
+      commentForm.setAttribute("post-id", post.id.toString());
       likeElement.setAttribute("post-id", post.id.toString());
       likeCountElement.setAttribute("post-id", post.id.toString());
 
@@ -881,10 +885,97 @@ const loadPosts = async (container, userId, reset = false) => {
         dislikeIcon.classList.remove("d-none");
       }
     } else {
+      commentForm.remove();
       likeElement.remove();
+      commentContainer.classList.add("mb-2");
+      const divider2 = newElement.querySelector("#divider-2");
+      divider2.remove();
+    }
+
+    await loadComments(post.id, commentContainer);
+
+    const divider = newElement.querySelector("#divider");
+    const likedText = newElement.querySelector("#liked-count-text");
+    if (commentContainer.children.length === 0) {
+      divider.classList.add("d-none");
+      likedText.classList.remove("mb-2");
+    } else {
+      divider.classList.remove("d-none");
+      likedText.classList.add("mb-2");
     }
 
     container.appendChild(newElement);
+  }
+};
+
+const loadComments = async (
+  postId,
+  container = document.querySelector(`[post-id="${postId}"]#comment-container`)
+) => {
+  let firstElement;
+  if (container.children.length > 0) {
+    firstElement = container.firstChild;
+  } else {
+    firstElement = null;
+  }
+  const viewMoreCommentsElement = container.querySelector(
+    "#view-more-comments"
+  );
+  if (viewMoreCommentsElement) {
+    container.removeChild(viewMoreCommentsElement);
+  }
+
+  let lastCommentId = null;
+  if (firstElement != null) {
+    //lastCommentId = parseInt(firstElement.getAttribute("comment-id"));
+    const lastElement = container.lastChild;
+    lastCommentId = parseInt(lastElement.getAttribute("comment-id"));
+  }
+
+  let comments;
+  if (lastCommentId != null) {
+    comments = await postService.getComments({
+      postId: postId,
+      lastCommentId: lastCommentId,
+    });
+  } else {
+    comments = await postService.getComments({
+      postId: postId,
+      lastCommentId: 999, //TODO
+    });
+  }
+
+  const commentElement = convertStringToElement(
+    await (await fetch(`html/mains/comment.html`)).text()
+  );
+
+  for (let i = 0; i < comments.length; i++) {
+    const comment = comments[i];
+    const newElement = commentElement.cloneNode(true);
+    const containerFirstElement = container.lastChild;
+
+    const usernameElement = newElement.querySelector("#comment-username");
+    const contentElement = newElement.querySelector("#comment-content");
+
+    newElement.setAttribute("comment-id", comment.id.toString());
+    usernameElement.textContent = `${comment.username}:`;
+    contentElement.textContent = comment.comment;
+
+    container.append(newElement, containerFirstElement);
+  }
+
+  const allCommentCount = parseInt(
+    (await postService.getPostCommentsCount(postId)).commentsCount
+  );
+
+  if (allCommentCount > container.children.length) {
+    const viewMoreCommentsHTML = convertStringToElement(
+      await (await fetch(`html/mains/view-more-comments.html`)).text()
+    );
+    const button = viewMoreCommentsHTML.querySelector("#more-comments-button");
+
+    button.setAttribute("post-id", postId.toString());
+    container.appendChild(viewMoreCommentsHTML);
   }
 };
 
@@ -998,6 +1089,10 @@ document.addEventListener("click", async (event) => {
         parseInt(likeCountElement.textContent) - 1
       ).toString();
     }
+  } else if (event.target.id === "more-comments-button") {
+    event.target.disabled = true;
+    const postId = event.target.getAttribute("post-id");
+    await loadComments(postId);
   }
 });
 
@@ -1229,6 +1324,102 @@ document.addEventListener("submit", async (event) => {
       alert(error);
       buttonLoadingOff(submitButton);
     }
+  } else if (event.target.id === "comment-form") {
+    const commentInput = event.target.querySelector("#input-comment");
+    if (commentInput.value === "") {
+      return;
+    }
+
+    const postId = event.target.getAttribute("post-id");
+    const comment = commentInput.value;
+    event.target.reset();
+
+    const commentResponse = await postService.createCommentary(postId, comment);
+
+    const commentContainer = document.querySelector(
+      `[post-id="${postId}"]#comment-container`
+    );
+
+    const lastElement = commentContainer.lastElementChild;
+    const newElement = convertStringToElement(
+      await (await fetch(`html/mains/comment.html`)).text()
+    );
+    const usernameElement = newElement.querySelector("#comment-username");
+    const contentElement = newElement.querySelector("#comment-content");
+
+    newElement.setAttribute("comment-id", commentResponse.commentId);
+    usernameElement.textContent = `${commentResponse.username}:`;
+    contentElement.textContent = comment;
+
+    if (lastElement === null || lastElement.id != "view-more-comments") {
+      commentContainer.appendChild(newElement);
+    } else {
+      commentContainer.insertBefore(newElement, lastElement);
+    }
+
+    const postContainer = document.querySelector(
+      `[post-id="${postId}"]#post-container`
+    );
+
+    const divider = postContainer.querySelector("#divider");
+    const likedText = postContainer.querySelector("#liked-count-text");
+    divider.classList.remove("d-none");
+    likedText.classList.add("mb-2");
+
+    ////////////////////////////////////////////////
+    // if (commentResponse.ok) {
+    //   const commentId = await commentResponse.text();
+    //   const username = (
+    //     await (
+    //       await AJAXGet("user.controller.php", { id: session["user-id"] })
+    //     ).json()
+    //   ).username;
+    //   const commentContainer = document.querySelector(
+    //     `[post-id="${postId}"]#comment-container`
+    //   );
+    //   const lastElement = commentContainer.lastElementChild;
+
+    //   const newElement = convertStringToElement(
+    //     await (await AJAXGetHTML(`mains/comment.html`)).text()
+    //   );
+    //   const usernameElement = newElement.querySelector("#comment-username");
+    //   const contentElement = newElement.querySelector("#comment-content");
+
+    //   newElement.setAttribute("comment-id", commentId);
+    //   usernameElement.textContent = `${username}:`;
+    //   contentElement.textContent = comment;
+
+    //   if (lastElement === null || lastElement.id != "view-more-comments") {
+    //     commentContainer.appendChild(newElement);
+    //   } else {
+    //     commentContainer.insertBefore(newElement, lastElement);
+    //   }
+
+    //   const postContainer = document.querySelector(
+    //     `[post-id="${postId}"]#post-container`
+    //   );
+    //   const divider = postContainer.querySelector("#divider");
+    //   const likedText = postContainer.querySelector("#liked-count-text");
+    //   divider.classList.remove("d-none");
+    //   likedText.classList.add("mb-2");
+
+    //   const postUsername = document.querySelector(
+    //     `[post-id="${postId}"]#post-username`
+    //   ).textContent;
+    //   const receiver = await (
+    //     await AJAXGet("user.controller.php", { username: postUsername })
+    //   ).json();
+    //   if (receiver.email_notification && postUsername !== username) {
+    //     const postMail = receiver.email;
+    //     const mailSubject = "Camagru - New Comment On Your Post";
+    //     const mailContent = `Hi ${postUsername},\n\nOne of your posts just got a new comment from ${username}.\n--> ${username}: ${comment}\n\nThanks,\n- Camagru`;
+    //     await AJAXPost("send-mail.controller.php", {
+    //       email: postMail,
+    //       subject: mailSubject,
+    //       content: mailContent,
+    //     });
+    //   }
+    // }
   }
 });
 

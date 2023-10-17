@@ -10,7 +10,7 @@ export const accountService = {
   verifyEmail,
   forgotPassword,
   resetPassword,
-  update
+  update,
 }
 
 function refreshToken() {

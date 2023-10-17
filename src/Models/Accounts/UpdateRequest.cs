@@ -9,6 +9,7 @@ public class UpdateRequest
     private string _email;
     
     public string Username { get; set; }
+    public bool NeedSendNotifications { get; set; }
 
     [EmailAddress]
     public string Email

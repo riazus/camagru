@@ -11,6 +11,9 @@ export const postService = {
   uploadImage,
   uploadImageForUser,
   createNewPost,
+  createCommentary,
+  getComments,
+  getPostCommentsCount
 };
 
 function getChunkPosts(postId) {
@@ -43,4 +46,16 @@ function uploadImageForUser(params) {
 
 function createNewPost(params) {
   return fetchWrapper.post(`${baseUrl}`, params);
+}
+
+function createCommentary(postId, comment) {
+  return fetchWrapper.post(`${baseUrl}/comment/${postId}`, {commentary: comment});
+}
+
+function getComments(params) {
+  return fetchWrapper.post(`${baseUrl}/comment`, params);
+}
+
+function getPostCommentsCount(postId) {
+  return fetchWrapper.get(`${baseUrl}/comment/count/${postId}`);
 }

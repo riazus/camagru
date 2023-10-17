@@ -40,7 +40,7 @@ public class AccountService : IAccountService
 
     public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
     {
-        var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email) 
+        var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email)
             ?? throw new AppException("Email is incorrect");
 
         // validate
@@ -121,7 +121,7 @@ public class AccountService : IAccountService
     public void Register(RegisterRequest model, string origin)
     {
         // validate
-        if (_context.Accounts.Any(x => x.Email == model.Email))
+        if (_context.Accounts.Any(x => x.Email == model.Email || x.Username == model.Username))
         {
             // send already registered error in email to prevent account enumeration
             sendAlreadyRegisteredEmail(model.Email, origin);
@@ -235,6 +235,12 @@ public class AccountService : IAccountService
             {
                 throw new AppException($"Email '{model.Email}' is already registered");
             }
+        }
+
+        if (!string.IsNullOrEmpty(model.Username) && currUser.Username != model.Username
+            && _context.Accounts.Any(x => x.Username == model.Username))
+        {
+            throw new AppException($"Username '{model.Username}' is already registered");
         }
             
         // hash password if it was entered

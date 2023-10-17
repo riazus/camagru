@@ -10,6 +10,8 @@ using Org.BouncyCastle.Utilities.Zlib;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using static back.Models.Posts.UploadImageRequest;
 using System.Text.Json;
+using back.Services.Email;
+using System.ComponentModel.Design;
 
 namespace back.Services.PostService
 {
@@ -18,11 +20,15 @@ namespace back.Services.PostService
         private readonly CamagruDbContext _context;
         private static readonly string ImageDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Images");
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IEmailService _emailService;
 
-        public PostService(CamagruDbContext context, IWebHostEnvironment hostingEnvironment)
+        public PostService(CamagruDbContext context, 
+            IWebHostEnvironment hostingEnvironment,
+            IEmailService emailService)
         {
             _context = context;
             _hostingEnvironment = hostingEnvironment;
+            _emailService = emailService;
         }
 
         public MyPostResponse Create(CreatePostRequest model, Account currUser)
@@ -195,7 +201,7 @@ namespace back.Services.PostService
             _context.SaveChanges();
         }
 
-        public CommentResponse Comment(int postId, CommentRequest model, Account currUser)
+        public CommentResponse CreateComment(int postId, CommentRequest model, Account currUser)
         {
             var post = _context.Posts
                 .SingleOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
@@ -208,8 +214,18 @@ namespace back.Services.PostService
                 Account = currUser
             };
 
+            _context.Comments.Add(commentary);
+            _context.SaveChanges();
+
+            // send email
+            if (commentary.Post.Creator.NeedSendNotifications)
+            {
+                sendCommentEmail(commentary.Post.Creator, commentary);
+            }
+
             CommentResponse response = new()
             {
+                CommentId = commentary.Id,
                 Comment = commentary.Content,
                 CreateDate = commentary.CreatedDate,
                 Username = currUser.Username,
@@ -246,10 +262,6 @@ namespace back.Services.PostService
         
         public byte[] CreateAndSendImage(UploadImageRequest request)
         {
-            /*var mergedImage = GetUserBitmapImage(request);
-            using MemoryStream outputStream = new MemoryStream();
-            mergedImage.Save(outputStream, ImageFormat.Png);
-            return outputStream.ToArray();*/
             return GetUserBitmapImage(request);
         }
 
@@ -345,6 +357,48 @@ namespace back.Services.PostService
             mergedImage.Save(filePath, ImageFormat.Png);
 
             return fileName;
+        }
+
+        public IEnumerable<GetCommentsResponse> GetComments(GetCommentsRequest getCommentsRequest)
+        {
+            var comments = _context.Comments.FromSqlInterpolated($@"
+                    SELECT TOP 3 comment.*
+                    FROM dbo.Comments comment
+                    WHERE comment.Id < {getCommentsRequest.LastCommentId} AND comment.PostId = {getCommentsRequest.PostId}
+                    ORDER BY comment.Id DESC")
+                .Include(c => c.Account)
+                .ToList();
+
+            List<GetCommentsResponse> res = new List<GetCommentsResponse>();
+
+            foreach(Commentary comment in comments)
+            {
+                res.Add(new GetCommentsResponse
+                {
+                    Id = comment.Id,
+                    Comment = comment.Content,
+                    Username = comment.Account.Username
+                });
+            }
+
+            return res;
+        }
+
+        public int GetPostCommentsCount(int postId)
+        {
+            return _context.Comments.Where(c => c.Post.Id == postId).Count();
+        }
+
+        private void sendCommentEmail(Account postCreator, Commentary comment)
+        {
+            var message = $"Hi, {postCreator.Username}!\n\nOne of your posts just got a new comment from {comment.Account.Username}.\n--> {comment.Account.Username}: {comment.Content}\n\nThanks,\nCamagru";
+
+            _emailService.Send(
+            to: postCreator.Email,
+            subject: "Camagru - New Comment On Your Post",
+            html: $@"<h4>New Comment</h4>
+                        {message}"
+            );
         }
     }
 }
