@@ -1447,42 +1447,42 @@ const urlRoutes = {
     title: "Camagru | Forbidden",
     headerLink: "",
     mainLink: "403.html",
-    footerLink: "",
+    footerLink: "footer.html",
   },
   "/404": {
     name: "/404",
     title: "Camagru | Not found",
     headerLink: "",
     mainLink: "404.html",
-    footerLink: "",
+    footerLink: "footer.html",
   },
   "/visitor": {
     name: "/visitor",
     title: "Camagru",
     headerLink: "visitor.html",
     mainLink: "visitor.html",
-    footerLink: "",
+    footerLink: "footer.html",
   },
   "/login": {
     name: "/login",
     title: "Camagru",
     headerLink: "login.html",
     mainLink: "login.html",
-    footerLink: "",
+    footerLink: "footer.html",
   },
   "/register": {
     name: "/register",
     title: "Camagru | Register",
     headerLink: "register.html",
     mainLink: "register.html",
-    footerLink: "",
+    footerLink: "footer.html",
   },
   "/": {
     name: "/",
     title: "Camagru",
     headerLink: "home.html",
     mainLink: "home.html",
-    footerLink: "",
+    footerLink: "footer.html",
     navbarLink: "navbar.html",
   },
   "/verification-sent": {
@@ -1665,16 +1665,10 @@ const urlRoute = (event) => {
 const urlLocationHandler = async (pathname) => {
   let location;
   if (typeof pathname != "object") {
-    // If it hasn't come from window.onpopstate
     location = pathname || window.location.pathname;
-    //console.log("ON NOT POPSTATE"+location);
   } else {
     location = window.location.pathname;
   }
-  // TEMPORARY SOLUTION
-  // TODO: DELETE
-  // NEED FOR LIVE SERVER
-  //location = location.replace('/src/wwwroot', '');
 
   let route = urlRoutes[location] || urlRoutes["/404"];
   route = await changeRoute(route);
@@ -1684,21 +1678,18 @@ const urlLocationHandler = async (pathname) => {
     const headerElement = await (
       await fetch(`html/headers/${route.headerLink}`)
     ).text();
-    //console.log(headerElement);
     document.getElementById("header-section").innerHTML = headerElement;
   }
   if (route.mainLink !== "") {
     const mainElement = await (
       await fetch(`html/mains/${route.mainLink}`)
     ).text();
-    //console.log(mainElement);
     document.getElementById("main-section").innerHTML = mainElement;
   }
   if (route.footerLink !== "") {
     const footerElement = await (
       await fetch(`html/footers/${route.footerLink}`)
     ).text();
-    //console.log(footerElement);
     document.getElementById("footer-section").innerHTML = footerElement;
   }
 
