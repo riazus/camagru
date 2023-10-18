@@ -15,7 +15,6 @@ namespace back.Services.PostService
         void Like(int id, Account currUser);
         void Dislike(int id, Account currUser);
         Task<Tuple<CommentResponse, Account, Commentary>> CreateComment(int postId, CommentRequest model, Account currUser);
-        //Task<IActionResult> CreateComment(int postId, CommentRequest model, Account currUser);
         IsLikedResponse IsUserLikedPost(int postId, int userId);
         IEnumerable<string> GetStickers();
         byte[] CreateAndSendImage(UploadImageRequest request);

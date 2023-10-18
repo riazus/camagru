@@ -2,11 +2,6 @@
 using back.Models.Posts;
 using back.Services.PostService;
 using Microsoft.AspNetCore.Mvc;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.Text.Json;
-using static back.Models.Posts.UploadImageRequest;
-using back.Entities;
 
 namespace back.Controllers
 {
