@@ -41,13 +41,13 @@ public class AccountService : IAccountService
     public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
     {
         var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email)
-            ?? throw new AppException("Email is incorrect");
+            ?? throw new AppException("Email isn't correct");
 
         // validate
         if (!account.IsVerified)
             throw new AppException("Email not validated");
         if (!_passwordHasher.Verify(account.PasswordHash, model.Password))
-            throw new AppException("Password is incorrect");
+            throw new AppException("Password isn't correct");
 
         // authentication successful so generate jwt and refresh tokens
         var jwtToken = _jwtUtils.GenerateJwtToken(account);

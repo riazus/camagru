@@ -1,6 +1,46 @@
 import { accountService } from "./_services/account.js";
 import { postService } from "./_services/post.js";
 
+window.alert = (errorMessage, timeout = null) => {
+  const alert = document.createElement("div");
+  const alertButton = document.createElement("button");
+  alertButton.innerText = "OK";
+  alert.classList.add("alert");
+  alert.setAttribute(
+    "style",
+    `
+    position:fixed;
+    top: 100px;
+    left: 50%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 5px 0 #00000022;
+    display:flex;
+    flex-direction:column;
+    border: 1px solid #333;
+    transform: translateX(-50%);
+    background: #212529;
+    text-align: center;
+  `
+  );
+
+  alertButton.classList.add("btn", "btn-outline-light", "btn-lg", "px-5");
+  alert.innerHTML = `<span style="color:azure;padding:10px;">${errorMessage}</span>`;
+  alert.appendChild(alertButton);
+
+  alertButton.addEventListener("click", (e) => {
+    alert.remove();
+  });
+
+  if (timeout != null) {
+    setTimeout(() => {
+      alert.remove();
+    }, Number(timeout));
+  }
+
+  document.body.appendChild(alert);
+};
+
 //#region CREATEPOST.JS
 
 const pixelToPercentage = (px, parentSize) => {
@@ -787,7 +827,9 @@ const setCreatePost = async () => {
 
       await postService.createNewPost({ fileName: imageResponse.fileName });
       alert("Post created successfully!");
-      window.location.replace("/");
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 3000);
     } catch (err) {
       alert(err);
     }
@@ -1223,7 +1265,6 @@ document.addEventListener("submit", async (event) => {
     try {
       await accountService.login(emailInput.value, passwordInput.value);
       window.location.replace("/");
-      //alert("LOGIN!");
       buttonLoadingOff(submitButton);
     } catch (error) {
       alert(error);
@@ -1250,7 +1291,9 @@ document.addEventListener("submit", async (event) => {
       });
 
       localStorage.setItem("verification-sent", "true");
-      window.location.replace("/verification-sent");
+      alert(
+        "Verification Link Sent! Please verify your account using the link that has been sent to your email"
+      );
       buttonLoadingOff(submitButton);
     } catch (error) {
       alert(error);
@@ -1267,7 +1310,7 @@ document.addEventListener("submit", async (event) => {
     try {
       await accountService.forgotPassword(emailInput.value);
       localStorage.setItem("reset-password-sent", "true");
-      alert("Email instructions sent successfully!");
+      alert("Email instructions sent successfully!", 3000);
       buttonLoadingOff(submitButton);
     } catch (error) {
       alert(error);
@@ -1292,7 +1335,7 @@ document.addEventListener("submit", async (event) => {
       });
       localStorage.removeItem("reset-password-sent");
       localStorage.removeItem("reset-token");
-      alert("Password reseted successfully, now you can LogIn!");
+      alert("Password reseted successfully, now you can LogIn!", 3000);
       window.location.replace("/login");
       buttonLoadingOff(submitButton);
     } catch (error) {
@@ -1329,13 +1372,14 @@ document.addEventListener("submit", async (event) => {
 
       if (reloginRequired) {
         alert(
-          "Profile updated successfully, now you need approve your email. See you :)"
+          "Profile updated successfully, now you need approve your email. See you :)",
+          3000
         );
         await accountService.logout();
         localStorage.setItem("verification-sent", "true");
         window.location.replace("/verification-sent");
       } else {
-        alert("Profile updated successfully!");
+        alert("Profile updated successfully!", 3000);
         window.location.replace("/");
       }
       buttonLoadingOff(submitButton);
@@ -1386,61 +1430,6 @@ document.addEventListener("submit", async (event) => {
     const likedText = postContainer.querySelector("#liked-count-text");
     divider.classList.remove("d-none");
     likedText.classList.add("mb-2");
-
-    ////////////////////////////////////////////////
-    // if (commentResponse.ok) {
-    //   const commentId = await commentResponse.text();
-    //   const username = (
-    //     await (
-    //       await AJAXGet("user.controller.php", { id: session["user-id"] })
-    //     ).json()
-    //   ).username;
-    //   const commentContainer = document.querySelector(
-    //     `[post-id="${postId}"]#comment-container`
-    //   );
-    //   const lastElement = commentContainer.lastElementChild;
-
-    //   const newElement = convertStringToElement(
-    //     await (await AJAXGetHTML(`mains/comment.html`)).text()
-    //   );
-    //   const usernameElement = newElement.querySelector("#comment-username");
-    //   const contentElement = newElement.querySelector("#comment-content");
-
-    //   newElement.setAttribute("comment-id", commentId);
-    //   usernameElement.textContent = `${username}:`;
-    //   contentElement.textContent = comment;
-
-    //   if (lastElement === null || lastElement.id != "view-more-comments") {
-    //     commentContainer.appendChild(newElement);
-    //   } else {
-    //     commentContainer.insertBefore(newElement, lastElement);
-    //   }
-
-    //   const postContainer = document.querySelector(
-    //     `[post-id="${postId}"]#post-container`
-    //   );
-    //   const divider = postContainer.querySelector("#divider");
-    //   const likedText = postContainer.querySelector("#liked-count-text");
-    //   divider.classList.remove("d-none");
-    //   likedText.classList.add("mb-2");
-
-    //   const postUsername = document.querySelector(
-    //     `[post-id="${postId}"]#post-username`
-    //   ).textContent;
-    //   const receiver = await (
-    //     await AJAXGet("user.controller.php", { username: postUsername })
-    //   ).json();
-    //   if (receiver.email_notification && postUsername !== username) {
-    //     const postMail = receiver.email;
-    //     const mailSubject = "Camagru - New Comment On Your Post";
-    //     const mailContent = `Hi ${postUsername},\n\nOne of your posts just got a new comment from ${username}.\n--> ${username}: ${comment}\n\nThanks,\n- Camagru`;
-    //     await AJAXPost("send-mail.controller.php", {
-    //       email: postMail,
-    //       subject: mailSubject,
-    //       content: mailContent,
-    //     });
-    //   }
-    // }
   }
 });
 
@@ -1561,7 +1550,6 @@ const afterPageLoad = async (location) => {
     const token = localStorage.getItem("verification-token");
 
     try {
-      alert(token);
       await accountService.verifyEmail(token);
       localStorage.removeItem("verification-token");
       localStorage.removeItem("verification-sent");

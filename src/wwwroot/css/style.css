@@ -9,6 +9,9 @@
 
 body {
   font-family: "Open Sans", sans-serif;
+  background-color: #6a4d40;
+  background-size: cover;
+  background-repeat: repeat;
 }
 
 .title-font {

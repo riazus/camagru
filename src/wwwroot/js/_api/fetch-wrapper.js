@@ -57,20 +57,13 @@ function _delete(url) {
 // helpers
 
 function authHeader(url) {
-  // return auth header with jwt if user is logged in and request is to the api url
   const user = JSON.parse(localStorage.getItem("currentUser"));
-  console.log(`authHeader(${url})`);
-  //alert(`authHeader(${url})`);
-  //console.log(user);
+
   const isLoggedIn = user && user.jwtToken;
-  //const isApiUrl = url.startsWith("http://localhost:4000");
 
   if (isLoggedIn) {
-    //console.log("AUTHORIZED");
-    //console.log(user.jwtToken);
     return { Authorization: `Bearer ${user.jwtToken}` };
   } else {
-    console.log("NOT AUTHORIZED");
     return {};
   }
 }
@@ -80,13 +73,10 @@ function handleResponse(response) {
     const data = text && JSON.parse(text);
 
     if (!response.ok) {
-      console.log("RESPONSE NOT OKAY");
       if (
         [401, 403].includes(response.status) &&
         JSON.parse(localStorage.getItem("currentUser"))
       ) {
-        // auto logout if 401 Unauthorized or 403 Forbidden response returned from api
-        console.log("LOGOUT");
         return accountService.logout();
       }
 
@@ -100,13 +90,10 @@ function handleResponse(response) {
 
 function handleFileResponse(response) {
   if (!response.ok) {
-    console.log("RESPONSE NOT OKAY");
     if (
       [401, 403].includes(response.status) &&
       JSON.parse(localStorage.getItem("currentUser"))
     ) {
-      // auto logout if 401 Unauthorized or 403 Forbidden response returned from api
-      console.log("LOGOUT");
       return accountService.logout();
     }
 
