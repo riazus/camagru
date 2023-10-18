@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.Text.Json;
 using static back.Models.Posts.UploadImageRequest;
+using back.Entities;
 
 namespace back.Controllers
 {
@@ -81,10 +82,16 @@ namespace back.Controllers
         }
 
         [HttpPost("comment/{id:int}")]
-        public ActionResult<CommentResponse> CreateComment(int id, CommentRequest model)
+        public async Task<ActionResult<CommentResponse>> CreateComment(int id, CommentRequest model)
         {
-            var response = _postService.CreateComment(id, model, Account);
-            return Ok(response);
+            var response = await _postService.CreateComment(id, model, Account);
+            
+            _ = Task.Run(async () =>
+            {
+                await _postService.SendCommentEmail(response.Item2, response.Item3);
+            });
+
+            return Ok(response.Item1);
         }
 
         [HttpGet("is-liked/{postId:int}")]

@@ -201,7 +201,7 @@ namespace back.Services.PostService
             _context.SaveChanges();
         }
 
-        public CommentResponse CreateComment(int postId, CommentRequest model, Account currUser)
+        public async Task<Tuple<CommentResponse, Account, Commentary>> CreateComment(int postId, CommentRequest model, Account currUser)
         {
             var post = _context.Posts
                 .SingleOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
@@ -217,12 +217,6 @@ namespace back.Services.PostService
             _context.Comments.Add(commentary);
             _context.SaveChanges();
 
-            // send email
-            if (commentary.Post.Creator.NeedSendNotifications)
-            {
-                sendCommentEmail(commentary.Post.Creator, commentary);
-            }
-
             CommentResponse response = new()
             {
                 CommentId = commentary.Id,
@@ -231,7 +225,9 @@ namespace back.Services.PostService
                 Username = currUser.Username,
             };
 
-            return response;
+            var tuple = new Tuple<CommentResponse, Account, Commentary>(response, commentary.Post.Creator, commentary);
+
+            return tuple;
         }
 
         public IsLikedResponse IsUserLikedPost(int postId, int userId)
@@ -390,7 +386,7 @@ namespace back.Services.PostService
             return _context.Comments.Where(c => c.Post.Id == postId).Count();
         }
 
-        private void sendCommentEmail(Account postCreator, Commentary comment)
+        public async Task SendCommentEmail(Account postCreator, Commentary comment)
         {
             var message = @$"<p>Hi, {postCreator.Username}!</p>
                 <p>One of your posts just got a new comment from {comment.Account.Username}.</p>
@@ -398,7 +394,7 @@ namespace back.Services.PostService
                 <p>Thanks,</p>
                 <p>Camagru</p>";
 
-            _emailService.Send(
+            await _emailService.SendAsync(
             to: postCreator.Email,
             subject: "Camagru - New Comment On Your Post",
             html: $@"<h4>New Comment</h4>
