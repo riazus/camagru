@@ -949,19 +949,40 @@ const loadComments = async (
     await (await fetch(`html/mains/comment.html`)).text()
   );
 
-  for (let i = 0; i < comments.length; i++) {
-    const comment = comments[i];
-    const newElement = commentElement.cloneNode(true);
-    const containerFirstElement = container.lastChild;
+  if (!lastCommentId) {
+    for (let i = 0; i < comments.length; i++) {
+      const comment = comments[i];
+      const newElement = commentElement.cloneNode(true);
+      const containerFirstElement = container.firstChild;
 
-    const usernameElement = newElement.querySelector("#comment-username");
-    const contentElement = newElement.querySelector("#comment-content");
+      const usernameElement = newElement.querySelector("#comment-username");
+      const contentElement = newElement.querySelector("#comment-content");
+      const dateElement = newElement.querySelector("#comment-created-date");
 
-    newElement.setAttribute("comment-id", comment.id.toString());
-    usernameElement.textContent = `${comment.username}:`;
-    contentElement.textContent = comment.comment;
+      newElement.setAttribute("comment-id", comment.id.toString());
+      usernameElement.textContent = `${comment.username}:`;
+      contentElement.textContent = comment.comment;
+      dateElement.textContent = determineDate(comment.createdDate);
 
-    container.append(newElement, containerFirstElement);
+      container.insertBefore(newElement, containerFirstElement);
+    }
+  } else {
+    for (let i = comments.length - 1; i >= 0; i--) {
+      const comment = comments[i];
+      const newElement = commentElement.cloneNode(true);
+      const containerLastElement = container.lastChild;
+
+      const usernameElement = newElement.querySelector("#comment-username");
+      const contentElement = newElement.querySelector("#comment-content");
+      const dateElement = newElement.querySelector("#comment-created-date");
+
+      newElement.setAttribute("comment-id", comment.id.toString());
+      usernameElement.textContent = `${comment.username}:`;
+      contentElement.textContent = comment.comment;
+      dateElement.textContent = determineDate(comment.createdDate);
+
+      container.append(containerLastElement, newElement);
+    }
   }
 
   const allCommentCount = parseInt(
@@ -975,6 +996,7 @@ const loadComments = async (
     const button = viewMoreCommentsHTML.querySelector("#more-comments-button");
 
     button.setAttribute("post-id", postId.toString());
+    button.style.pointerEvents = "pointer";
     container.appendChild(viewMoreCommentsHTML);
   }
 };
@@ -1110,9 +1132,6 @@ document.addEventListener("submit", async (event) => {
   const usernameInput = document.getElementById("username");
   const passwordInput = document.getElementById("password");
   const password2Input = document.getElementById("password2");
-
-  //console.log(`DATA: [email: ${emailInput.value}] [password: ${passwordInput.value}]`);
-  //console.log(event.target.id);
 
   //#region VALIDATION HELPERS
   // Show input error message
@@ -1346,10 +1365,12 @@ document.addEventListener("submit", async (event) => {
     );
     const usernameElement = newElement.querySelector("#comment-username");
     const contentElement = newElement.querySelector("#comment-content");
+    const dateElement = newElement.querySelector("#comment-created-date");
 
     newElement.setAttribute("comment-id", commentResponse.commentId);
     usernameElement.textContent = `${commentResponse.username}:`;
     contentElement.textContent = comment;
+    dateElement.textContent = determineDate(commentResponse.createDate);
 
     if (lastElement === null || lastElement.id != "view-more-comments") {
       commentContainer.appendChild(newElement);

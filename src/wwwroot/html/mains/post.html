@@ -24,7 +24,7 @@
         />
       </div>
 
-      <div class="row justify-content-between">
+      <div class="row d-flex justify-content-between align-items-center">
         <div class="col-2 mt-2 d-flex justify-content-start">
           <button id="like-post" class="btn btn-link ms-1 icon-button">
             <svg
@@ -55,15 +55,12 @@
             </svg>
           </button>
         </div>
-      </div>
-
-      <div class="row">
-        <div id="liked-count-text" class="col mx-2 mb-2">
-          <small>Liked by</small>
-          <small id="like-count"></small>
-          <small>people</small>
-          <hr id="divider" style="margin: 0" class="mt-2 border-light" />
+        <div id="liked-count-text" class="col-auto pt-2 d-flex align-items-center">
+          <small style="margin-right: 4px;">Liked by</small>
+          <small id="like-count" style="margin-right: 4px;"></small>
+          <small style="margin-right: 4px;">people</small>
         </div>
+        <hr id="divider" style="margin: 0" class="mt-2 border-light" />
       </div>
 
       <div id="comment-container"></div>

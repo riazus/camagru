@@ -92,3 +92,7 @@ input[type="comment"]:focus {
   position: absolute;
   z-index: 1;
 }
+
+.small-font {
+  font-size: 0.6rem;
+}

@@ -377,7 +377,8 @@ namespace back.Services.PostService
                 {
                     Id = comment.Id,
                     Comment = comment.Content,
-                    Username = comment.Account.Username
+                    Username = comment.Account.Username,
+                    CreatedDate = comment.CreatedDate,
                 });
             }
 
@@ -391,7 +392,11 @@ namespace back.Services.PostService
 
         private void sendCommentEmail(Account postCreator, Commentary comment)
         {
-            var message = $"Hi, {postCreator.Username}!\n\nOne of your posts just got a new comment from {comment.Account.Username}.\n--> {comment.Account.Username}: {comment.Content}\n\nThanks,\nCamagru";
+            var message = @$"<p>Hi, {postCreator.Username}!</p>
+                <p>One of your posts just got a new comment from {comment.Account.Username}.</p>
+                <p>--> {comment.Account.Username}: {comment.Content}</p>
+                <p>Thanks,</p>
+                <p>Camagru</p>";
 
             _emailService.Send(
             to: postCreator.Email,
