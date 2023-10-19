@@ -9,6 +9,7 @@ services:
     container_name: mssql
     environment:
       - ACCEPT_EULA=Y
+      - TZ=Europe/Paris
       - MSSQL_SA_PASSWORD=${MSSQL_PASSWORD}
       - MSSQL_TCP_PORT=${MSSQL_PORT}
     ports:
@@ -27,6 +28,7 @@ services:
       context: src/
     hostname: app
     environment:
+      - TZ=Europe/Paris
       - ConnectionStrings__DefaultConnection=Data Source=camagru-db;Initial Catalog=${DB_NAME};User ID=sa;Password=${MSSQL_PASSWORD};Encrypt=False
       - AppSettings__Secret=${JWT_SECRET}
       - AppSettings__SmtpUser=${SMTP_USER}
