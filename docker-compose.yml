@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  # ------------------------------------------------------------
+  # MSSQL - Database
+  # ------------------------------------------------------------
+  camagru-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_PASSWORD}
+      - MSSQL_TCP_PORT=${MSSQL_PORT}
+    ports:
+      - ${MSSQL_PORT}:${MSSQL_PORT}
+    networks:
+      - camagru-network
+    restart: always
+
+  # ------------------------------------------------------------
+  # App - ASP.NET 7.0 + static HTML
+  # ------------------------------------------------------------
+  app:
+    image: docker.io/library/camagru-app
+    container_name: app
+    build:
+      context: src/
+    hostname: app
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=camagru-db;Initial Catalog=${DB_NAME};User ID=sa;Password=${MSSQL_PASSWORD};Encrypt=False
+      - AppSettings__Secret=${JWT_SECRET}
+      - AppSettings__SmtpUser=${SMTP_USER}
+      - AppSettings__SmtpPass=${SMTP_PASS}
+    depends_on:
+      - camagru-db
+    ports:
+      - ${APP_PORT}:80
+    networks:
+      - camagru-network
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
+networks:
+  camagru-network:
+    driver: bridge

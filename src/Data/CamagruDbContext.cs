@@ -20,7 +20,7 @@ namespace back.Data
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             // connect to ms sql database
-            options.UseSqlServer(Configuration.GetConnectionString("WebApiDatabase"));
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }
