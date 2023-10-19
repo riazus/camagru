@@ -81,10 +81,13 @@ namespace back.Controllers
         {
             var response = await _postService.CreateComment(id, model, Account);
             
-            _ = Task.Run(async () =>
+            if (response.Item2.NeedSendNotifications)
             {
-                await _postService.SendCommentEmail(response.Item2, response.Item3);
-            });
+                _ = Task.Run(async () =>
+                {
+                    await _postService.SendCommentEmail(response.Item2, response.Item3);
+                });
+            }
 
             return Ok(response.Item1);
         }
