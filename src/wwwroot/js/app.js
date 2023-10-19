@@ -1174,6 +1174,7 @@ document.addEventListener("submit", async (event) => {
   const usernameInput = document.getElementById("username");
   const passwordInput = document.getElementById("password");
   const password2Input = document.getElementById("password2");
+  const needSendEmailCheck = document.getElementById("needCommentSentCheck");
 
   //#region VALIDATION HELPERS
   // Show input error message
@@ -1370,6 +1371,7 @@ document.addEventListener("submit", async (event) => {
         email: emailInput.value,
         password: passwordInput.value,
         confirmPassword: password2Input.value,
+        needSendNotifications: needSendEmailCheck.checked,
       });
 
       if (reloginRequired) {
@@ -1377,15 +1379,19 @@ document.addEventListener("submit", async (event) => {
           "Profile updated successfully, now you need approve your email. See you :)",
           3000
         );
-        await accountService.logout();
-        localStorage.setItem("verification-sent", "true");
-        window.location.replace("/verification-sent");
+        setTimeout(async () => {
+          await accountService.logout();
+          localStorage.setItem("verification-sent", "true");
+          window.location.replace("/verification-sent");
+        }, 3000);
       } else {
         alert("Profile updated successfully!", 3000);
-        window.location.replace("/");
+        setTimeout(() => {
+          window.location.replace("/");
+        }, 3000);
       }
       buttonLoadingOff(submitButton);
-    } catch {
+    } catch (error) {
       alert(error);
       buttonLoadingOff(submitButton);
     }
@@ -1548,20 +1554,6 @@ const afterPageLoad = async (location) => {
     mainSection.classList.add("d-flex", "flex-grow-1", "align-items-center");
   }
 
-  if (location === "/verify-email") {
-    const token = localStorage.getItem("verification-token");
-
-    try {
-      await accountService.verifyEmail(token);
-      localStorage.removeItem("verification-token");
-      localStorage.removeItem("verification-sent");
-      const header = document.getElementById("verify-header");
-      header.textContent = "Email verified successfully, you can login now!";
-    } catch (error) {
-      window.location.replace("/403");
-    }
-  }
-
   if (location === "/" || location === "/visitor") {
     const container = document.getElementById("main-posts");
     await loadPosts(container, null, true);
@@ -1624,6 +1616,22 @@ const afterPageLoad = async (location) => {
       row.appendChild(newHorizontal);
     }
     await setCreatePost();
+  } else if (location === "/verify-email") {
+    const token = localStorage.getItem("verification-token");
+
+    try {
+      await accountService.verifyEmail(token);
+      localStorage.removeItem("verification-token");
+      localStorage.removeItem("verification-sent");
+      const header = document.getElementById("verify-header");
+      header.textContent = "Email verified successfully, you can login now!";
+    } catch (error) {
+      window.location.replace("/403");
+    }
+  } else if (location === "/settings") {
+    const currUser = JSON.parse(localStorage.getItem("currentUser"));
+    const checkbox = document.getElementById("needCommentSentCheck");
+    checkbox.checked = currUser.needSendNotifications;
   }
 
   // GENERAL
