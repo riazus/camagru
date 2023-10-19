@@ -2,27 +2,22 @@
 using back.Entities;
 using back.Models.Posts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
-using System.Drawing.Imaging;
-using System.Drawing;
-using System.Diagnostics;
-using Org.BouncyCastle.Utilities.Zlib;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using static back.Models.Posts.UploadImageRequest;
 using System.Text.Json;
 using back.Services.Email;
-using System.ComponentModel.Design;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace back.Services.PostService
 {
-    public class PostService :  IPostService
+    public class PostService : IPostService
     {
         private readonly CamagruDbContext _context;
         private static readonly string ImageDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Images");
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IEmailService _emailService;
 
-        public PostService(CamagruDbContext context, 
+        public PostService(CamagruDbContext context,
             IWebHostEnvironment hostingEnvironment,
             IEmailService emailService)
         {
@@ -61,7 +56,7 @@ namespace back.Services.PostService
             var post = _context.Posts
                 .SingleOrDefault(p => p.Id == id) ?? throw new KeyNotFoundException($"Post with id {id} not found");
             var existingLike = _context.PostUsersLike
-                .SingleOrDefault(l => l.PostId == id && l.AccountId == currUser.Id) 
+                .SingleOrDefault(l => l.PostId == id && l.AccountId == currUser.Id)
                 ?? throw new KeyNotFoundException($"Existing like with postId {id} and userId {currUser.Id} not found");
 
             if (post.Likes > 0)
@@ -86,7 +81,7 @@ namespace back.Services.PostService
                 ?? throw new KeyNotFoundException("Posts not found");
             List<PostForAllResponse> response = new List<PostForAllResponse>();
 
-            foreach(var post in posts)
+            foreach (var post in posts)
             {
                 response.Add(new PostForAllResponse()
                 {
@@ -255,7 +250,7 @@ namespace back.Services.PostService
             return fileNames;
         }
 
-        
+
         public byte[] CreateAndSendImage(UploadImageRequest request)
         {
             return GetUserBitmapImage(request);
@@ -269,90 +264,75 @@ namespace back.Services.PostService
         public byte[] GetUserBitmapImage(UploadImageRequest request)
         {
             byte[] baseImageBytes = Convert.FromBase64String(request.BaseImage);
-            using MemoryStream baseImageStream = new MemoryStream(baseImageBytes);
-            using System.Drawing.Image baseImage = System.Drawing.Image.FromStream(baseImageStream);
-            int baseNewHeight = request.Height;
-            int baseNewWidth = (int)(baseImage.Width * ((double)baseNewHeight / baseImage.Height));
             request.Stickers = JsonSerializer.Deserialize<StickerInformation[]>(request.StickerArray);
 
-            using Bitmap mergedImage = new Bitmap(baseNewWidth, baseNewHeight);
-            using (Graphics g = Graphics.FromImage(mergedImage))
+            using (MemoryStream baseImageStream = new MemoryStream(baseImageBytes))
+            using (Image image = Image.Load(baseImageStream))
             {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                int baseNewHeight = request.Height;
+                int baseNewWidth = (int)(image.Width * ((double)baseNewHeight / image.Height));
+                image.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(baseNewWidth, baseNewHeight) }));
 
-                g.DrawImage(baseImage, 0, 0, baseNewWidth, baseNewHeight);
-
-                if (request.StickerArray != null)
+                if (request.Stickers != null)
                 {
                     foreach (var sticker in request.Stickers)
                     {
                         byte[] stickerImageBytes = Convert.FromBase64String(sticker.image);
-                        using MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes);
-                        using System.Drawing.Image stickerImage = System.Drawing.Image.FromStream(stickerImageStream);
-                        int stickerNewWidth = sticker.width;
-                        int stickerNewHeight = sticker.height;
-                        int stickerX = sticker.x;
-                        int stickerY = sticker.y;
 
-                        g.DrawImage(stickerImage, stickerX, stickerY, stickerNewWidth, stickerNewHeight);
+                        using (MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes))
+                        using (Image stickerImage = Image.Load(stickerImageStream))
+                        {
+                            stickerImage.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(sticker.width, sticker.height) }));
+                            image.Mutate(x => x.DrawImage(stickerImage, new Point(sticker.x, sticker.y), 1f));
+                        }
                     }
                 }
-            }
 
-            using MemoryStream outputStream = new MemoryStream();
-            mergedImage.Save(outputStream, ImageFormat.Png);
-            return outputStream.ToArray();
+                using (MemoryStream outputStream = new MemoryStream())
+                {
+                    image.Save(outputStream, new PngEncoder());
+                    return outputStream.ToArray();
+                }
+            }
         }
 
         public string GetUserBitmapImage2(UploadImageRequest request)
         {
             byte[] baseImageBytes = Convert.FromBase64String(request.BaseImage);
-            using MemoryStream baseImageStream = new MemoryStream(baseImageBytes);
-            using System.Drawing.Image baseImage = System.Drawing.Image.FromStream(baseImageStream);
-            int baseNewHeight = request.Height;
-            int baseNewWidth = (int)(baseImage.Width * ((double)baseNewHeight / baseImage.Height));
             request.Stickers = JsonSerializer.Deserialize<StickerInformation[]>(request.StickerArray);
 
-            using Bitmap mergedImage = new Bitmap(baseNewWidth, baseNewHeight);
-            using (Graphics g = Graphics.FromImage(mergedImage))
+            using (MemoryStream baseImageStream = new MemoryStream(baseImageBytes))
+            using (Image image = Image.Load(baseImageStream))
             {
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                int baseNewWidth = (int)(image.Width * ((double)request.Height / image.Height));
+                image.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(baseNewWidth, request.Height) }));
 
-                g.DrawImage(baseImage, 0, 0, baseNewWidth, baseNewHeight);
-
-                if (request.StickerArray != null)
+                if (request.Stickers != null)
                 {
                     foreach (var sticker in request.Stickers)
                     {
                         byte[] stickerImageBytes = Convert.FromBase64String(sticker.image);
-                        using MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes);
-                        using System.Drawing.Image stickerImage = System.Drawing.Image.FromStream(stickerImageStream);
-                        int stickerNewWidth = sticker.width;
-                        int stickerNewHeight = sticker.height;
-                        int stickerX = sticker.x;
-                        int stickerY = sticker.y;
-
-                        g.DrawImage(stickerImage, stickerX, stickerY, stickerNewWidth, stickerNewHeight);
+                        using (MemoryStream stickerImageStream = new MemoryStream(stickerImageBytes))
+                        using (Image stickerImage = Image.Load(stickerImageStream))
+                        {
+                            stickerImage.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(sticker.width, sticker.height) }));
+                            image.Mutate(x => x.DrawImage(stickerImage, new Point(sticker.x, sticker.y), 1f));
+                        }
                     }
                 }
+
+                string fileName = $"{Guid.NewGuid()}_{request.UserId}.png";
+                string filePath = Path.Combine(ImageDirectory, fileName);
+
+                if (!Directory.Exists(ImageDirectory))
+                {
+                    Directory.CreateDirectory(ImageDirectory);
+                }
+
+                image.Save(filePath);
+
+                return fileName;
             }
-
-            string fileName = $"{Guid.NewGuid()}_{request.UserId}.png";
-
-            if (!Directory.Exists(ImageDirectory))
-            {
-                Directory.CreateDirectory(ImageDirectory);
-            }
-
-            string filePath = Path.Combine(ImageDirectory, fileName);
-
-            mergedImage.Save(filePath, ImageFormat.Png);
-
-            return fileName;
         }
 
         public IEnumerable<GetCommentsResponse> GetComments(GetCommentsRequest getCommentsRequest)

@@ -35,6 +35,10 @@ public class ErrorHandlerMiddleware
                     // not found error
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                     break;
+                case TokenNotFoundException e:
+                    // token not found
+                    response.StatusCode= (int)HttpStatusCode.Unauthorized;
+                    break;
                 default:
                     // unhandled error
                     _logger.LogError(error, error.Message);

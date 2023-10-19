@@ -81,7 +81,7 @@ public class AccountService : IAccountService
         }
 
         if (!refreshToken.IsActive)
-            throw new AppException("Invalid token");
+            throw new TokenNotFoundException("Invalid token");
 
         // replace old refresh token with a new one (rotate token)
         var newRefreshToken = rotateRefreshToken(refreshToken, ipAddress);
@@ -286,16 +286,14 @@ public class AccountService : IAccountService
     private Account getAccountByRefreshToken(string token)
     {
         var account = _context.Accounts.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-        if (account == null) throw new AppException("Invalid token");
-        return account;
+        return account ?? throw new TokenNotFoundException("Invalid token");
     }
 
     private Account getAccountByResetToken(string token)
     {
         var account = _context.Accounts.SingleOrDefault(x =>
             x.ResetToken == token && x.ResetTokenExpires > DateTime.UtcNow);
-        if (account == null) throw new AppException("Invalid token");
-        return account;
+        return account ?? throw new AppException("Invalid token");
     }
 
     private string generateJwtToken(Account account)

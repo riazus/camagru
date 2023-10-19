@@ -1336,7 +1336,9 @@ document.addEventListener("submit", async (event) => {
       localStorage.removeItem("reset-password-sent");
       localStorage.removeItem("reset-token");
       alert("Password reseted successfully, now you can LogIn!", 3000);
-      window.location.replace("/login");
+      setTimeout(() => {
+        window.location.replace("/login");
+      }, 3000);
       buttonLoadingOff(submitButton);
     } catch (error) {
       alert(error);
