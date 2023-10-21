@@ -23,7 +23,6 @@ function post(url, body) {
     credentials: "include",
     body: JSON.stringify(body),
   };
-  //console.log(body, requestOptions);
   return fetch(url, requestOptions).then(handleResponse);
 }
 
@@ -57,12 +56,16 @@ function _delete(url) {
 // helpers
 
 function authHeader(url) {
-  const user = JSON.parse(localStorage.getItem("currentUser"));
-
-  const isLoggedIn = user && user.jwtToken;
+  let currUser;
+  const item = localStorage.getItem("currentUser");
+  if (item && item !== "undefined") {
+    currUser = JSON.parse(item);
+  }
+  
+  const isLoggedIn = currUser && currUser.jwtToken;
 
   if (isLoggedIn) {
-    return { Authorization: `Bearer ${user.jwtToken}` };
+    return { Authorization: `Bearer ${currUser.jwtToken}` };
   } else {
     return {};
   }
@@ -74,10 +77,18 @@ function handleResponse(response) {
 
     if (!response.ok) {
       if (
-        [401, 403].includes(response.status) &&
-        JSON.parse(localStorage.getItem("currentUser"))
+        [401, 403].includes(response.status)
       ) {
-        return accountService.logout();
+        let currUser;
+        const item = localStorage.getItem("currentUser");
+        if (item && item !== "undefined") {
+          currUser = JSON.parse(item);
+        }
+
+        if (currUser) {
+          return accountService.logout();
+        }
+        return;
       }
 
       const error = (data && data.message) || response.statusText;
@@ -91,14 +102,22 @@ function handleResponse(response) {
 function handleFileResponse(response) {
   if (!response.ok) {
     if (
-      [401, 403].includes(response.status) &&
-      JSON.parse(localStorage.getItem("currentUser"))
+      [401, 403].includes(response.status)
     ) {
-      return accountService.logout();
+      let currUser;
+      const item = localStorage.getItem("currentUser");
+      if (item && item !== "undefined") {
+        currUser = JSON.parse(item);
+      }
+
+      if (currUser) {
+        return accountService.logout();
+      }
+
+      return;
     }
 
-    const error =
-      (response.data && response.data.message) || response.statusText;
+    const error = (data && data.message) || response.statusText;
     return Promise.reject(error);
   }
 

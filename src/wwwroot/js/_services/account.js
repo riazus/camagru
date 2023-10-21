@@ -16,22 +16,22 @@ export const accountService = {
 function refreshToken() {
   return fetchWrapper.post(`${baseUrl}/refresh-token`, {})
       .then(user => {
-          // publish user to subscribers and start timer to refresh token
-          //userSubject.next(user);
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          //console.log(JSON.parse(localStorage.getItem('currentUser')));
-          startRefreshTokenTimer();
-          return user;
+          if (user) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            startRefreshTokenTimer();
+            return user;
+          }
       });
 }
 
 function login(email, password) {
   return fetchWrapper.post(`${baseUrl}/authenticate`, { email, password })
       .then(user => {
+        if (user) {
           localStorage.setItem('currentUser', JSON.stringify(user));
-          console.log(JSON.parse(localStorage.getItem('currentUser')));
           startRefreshTokenTimer();
           return user;
+        }
       })
       .catch((error) => {
         throw error;
@@ -69,16 +69,20 @@ function update(params) {
 let refreshTokenTimeout;
 
 function startRefreshTokenTimer() {
-  const currUser = JSON.parse(localStorage.getItem('currentUser'));
+  let currUser;
+  const item = localStorage.getItem("currentUser");
+  if (item && item !== "undefined") {
+    currUser = JSON.parse(item);
+  }
 
-  //console.log(`jwtTOKEN: ${currUser.jwtToken}`);
-  // parse json object from base64 encoded jwt token
-  const jwtToken = JSON.parse(atob(currUser.jwtToken.split('.')[1]));
-
-  // set a timeout to refresh the token a minute before it expires
-  const expires = new Date(jwtToken.exp * 1000);
-  const timeout = expires.getTime() - Date.now() - (60 * 1000);
-  refreshTokenTimeout = setTimeout(refreshToken, timeout);
+  if (currUser) {
+    const jwtToken = JSON.parse(atob(currUser.jwtToken.split('.')[1]));
+  
+    // set a timeout to refresh the token a minute before it expires
+    const expires = new Date(jwtToken.exp * 1000);
+    const timeout = expires.getTime() - Date.now() - (60 * 1000);
+    refreshTokenTimeout = setTimeout(refreshToken, timeout);
+  }
 }
 
 function stopRefreshTokenTimer() {

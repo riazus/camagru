@@ -815,7 +815,11 @@ const setCreatePost = async () => {
       });
     }
 
-    const currUser = JSON.parse(localStorage.getItem("currentUser"));
+    let currUser;
+    const item = localStorage.getItem("currentUser");
+    if (item && item !== "undefined") {
+      currUser = JSON.parse(item);
+    }
 
     try {
       const imageResponse = await postService.uploadImageForUser({
@@ -884,7 +888,13 @@ const loadPosts = async (container, userId, reset = false) => {
   );
 
   let isLogged = false;
-  const currUser = JSON.parse(localStorage.getItem("currentUser"));
+
+  let currUser;
+  const item = localStorage.getItem("currentUser");
+  if (item && item !== "undefined") {
+    currUser = JSON.parse(item);
+  }
+
   if (currUser) {
     isLogged = true;
   }
@@ -1629,7 +1639,11 @@ const afterPageLoad = async (location) => {
       window.location.replace("/403");
     }
   } else if (location === "/settings") {
-    const currUser = JSON.parse(localStorage.getItem("currentUser"));
+    let currUser;
+    const item = localStorage.getItem("currentUser");
+    if (item && item !== "undefined") {
+      currUser = JSON.parse(item);
+    }
     const checkbox = document.getElementById("needCommentSentCheck");
     checkbox.checked = currUser.needSendNotifications;
   }
@@ -1716,7 +1730,11 @@ const urlLocationHandler = async (pathname) => {
 
 const changeRoute = async (route) => {
   accountService.refreshToken();
-  const currUser = JSON.parse(localStorage.getItem("currentUser"));
+  let currUser;
+  const item = localStorage.getItem("currentUser");
+  if (item && item !== "undefined") {
+    currUser = JSON.parse(item);
+  }
 
   if (route.name === "/" || route.name === "/visitor") {
     route = currUser ? urlRoutes["/"] : urlRoutes["/visitor"];
