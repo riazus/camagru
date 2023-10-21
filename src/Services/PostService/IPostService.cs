@@ -22,5 +22,6 @@ namespace back.Services.PostService
         IEnumerable<GetCommentsResponse> GetComments(GetCommentsRequest getCommentsRequest);
         int GetPostCommentsCount(int postId);
         Task SendCommentEmail(Account postCreator, Commentary comment);
+        void DeletePostById(int postId);
     }
 }

@@ -7,6 +7,7 @@ using System.Text.Json;
 using back.Services.Email;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
+using back.Helpers;
 
 namespace back.Services.PostService
 {
@@ -145,6 +146,7 @@ namespace back.Services.PostService
                 CreateDate = post.CreateDate,
                 Likes = post.Likes,
                 Username = currUser.Username,
+                UserId = post.Creator.Id,
                 Comments = post.Comments,
                 ImagePath = post.ImagePath,
             };
@@ -170,6 +172,7 @@ namespace back.Services.PostService
                     CreateDate = post.CreateDate,
                     Likes = post.Likes,
                     Username = post.Creator.Username,
+                    UserId = post.Creator.Id,
                     Comments = post.Comments,
                     ImagePath = post.ImagePath,
                 });
@@ -209,7 +212,20 @@ namespace back.Services.PostService
                 Account = currUser
             };
 
+            if (post.Comments.Count == 0)
+            {
+                post.Comments = new List<Commentary>()
+                {
+                    commentary
+                };
+            }
+            else
+            {
+                post.Comments.Add(commentary);
+            }
+
             _context.Comments.Add(commentary);
+            _context.Posts.Update(post);
             _context.SaveChanges();
 
             CommentResponse response = new()
@@ -220,6 +236,7 @@ namespace back.Services.PostService
                 Username = currUser.Username,
             };
 
+            // TODO TODO TODO
             var tuple = new Tuple<CommentResponse, Account, Commentary>(response, commentary.Post.Creator, commentary);
 
             return tuple;
@@ -380,6 +397,15 @@ namespace back.Services.PostService
             html: $@"<h4>New Comment</h4>
                         {message}"
             );
+        }
+
+        public void DeletePostById(int postId)
+        {
+            var post = _context.Posts
+                .SingleOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
+            
+            _context.Remove(post);
+            _context.SaveChanges();
         }
     }
 }

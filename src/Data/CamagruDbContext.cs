@@ -22,5 +22,14 @@ namespace back.Data
             // connect to ms sql database
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
         }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<Post>()
+                .HasMany(b => b.Comments)
+                .WithOne(p => p.Post)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }

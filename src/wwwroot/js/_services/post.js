@@ -13,7 +13,8 @@ export const postService = {
   createNewPost,
   createCommentary,
   getComments,
-  getPostCommentsCount
+  getPostCommentsCount,
+  deletePost
 };
 
 function getChunkPosts(postId) {
@@ -58,4 +59,8 @@ function getComments(params) {
 
 function getPostCommentsCount(postId) {
   return fetchWrapper.get(`${baseUrl}/comment/count/${postId}`);
+}
+
+function deletePost(postId) {
+  return fetchWrapper.delete(`${baseUrl}/${postId}`);
 }

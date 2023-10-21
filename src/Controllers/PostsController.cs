@@ -136,5 +136,12 @@ namespace back.Controllers
             var commentsCount = _postService.GetPostCommentsCount(postId); 
             return Ok(new { commentsCount });
         }
+
+        [HttpDelete("{postId:int}")]
+        public ActionResult DeletePostById(int postId)
+        {
+            _postService.DeletePostById(postId);
+            return NoContent();
+        }
     }
 }

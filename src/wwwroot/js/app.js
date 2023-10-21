@@ -869,6 +869,7 @@ const convertStringToElement = (htmlString) => {
 
 let lastPostId = null;
 const loadPosts = async (container, userId, reset = false) => {
+  const isDialogSupported = typeof HTMLDialogElement !== 'undefined';
   let posts;
 
   if (reset) {
@@ -903,13 +904,19 @@ const loadPosts = async (container, userId, reset = false) => {
     const post = posts[i];
     const newElement = postElement.cloneNode(true);
 
-    const creatorElement = newElement.querySelector("#creator-span");
-    const likeCountElement = newElement.querySelector("#like-count");
+    const creatorElement = newElement.querySelector('#post-username');
+    const likeCountElement = newElement.querySelector('#like-count');
     const timeCreatedElement = newElement.querySelector("#post-date");
-    const imageElement = newElement.querySelector("#image-img");
+    const imageElement = newElement.querySelector('#post-image');
     const likeElement = newElement.querySelector("#like-post");
     const commentForm = newElement.querySelector("#comment-form");
     const commentContainer = newElement.querySelector("#comment-container");
+    const deleteButton = newElement.querySelector('#erase-post');
+    const deleteDialog = newElement.querySelector("#erase-dialog");
+    
+    if (!isDialogSupported) {
+      deleteDialog.remove();
+    }
 
     creatorElement.textContent = post.username;
     likeCountElement.textContent = post.likes;
@@ -939,9 +946,13 @@ const loadPosts = async (container, userId, reset = false) => {
     } else {
       commentForm.remove();
       likeElement.remove();
-      commentContainer.classList.add("mb-2");
+      deleteButton.remove();
+      if (deleteDialog) {
+        deleteDialog.remove();
+      }
       const divider2 = newElement.querySelector("#divider-2");
       divider2.remove();
+      commentContainer.classList.add("mb-2");
     }
 
     await loadComments(post.id, commentContainer);
@@ -954,6 +965,41 @@ const loadPosts = async (container, userId, reset = false) => {
     } else {
       divider.classList.remove("d-none");
       likedText.classList.add("mb-2");
+    }
+
+    if (isLogged) {
+      if (currUser.id == post.userId) {
+        deleteButton.classList.remove('d-none');
+      }
+
+      const deletePost = async () => {
+          await postService.deletePost(post.id);
+          newElement.remove();
+          const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+          const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+          if ((scrollTop + window.innerHeight) >= scrollHeight) {
+            const footer = document.getElementById('footer-section');
+            footer.classList.remove('d-none');
+            footer.classList.add('fixed-bottom');
+          }
+      }
+      deleteButton.addEventListener('click', () => {
+        if (isDialogSupported) {
+            deleteDialog.showModal();
+            const realDelete = deleteDialog.querySelector('#delete');
+            const cancel = deleteDialog.querySelector('#cancel');
+            realDelete.addEventListener('click', async () => {
+                deletePost();
+                deleteDialog.close();
+            });
+            cancel.addEventListener('click', () => {
+                deleteDialog.close();
+            });
+        }
+        else {
+            deletePost();
+        }
+      })
     }
 
     container.appendChild(newElement);
@@ -1094,17 +1140,29 @@ document.addEventListener("scroll", async () => {
 });
 
 const buttonLoadingOn = (button) => {
-  if (!button) {
-    return;
-  }
-  button.classList.toggle("button--loading");
+  if (!button) {return;}
+    const buttonText = button.querySelector('.btn-text');
+    const spinner = button.querySelector('.spinner-border');
+
+    if (buttonText && spinner)  {
+      button.disabled = true;
+      buttonText.classList.add('d-none');
+      spinner.classList.remove('d-none');
+    }
 };
 
 const buttonLoadingOff = async (button, removeDisabled = true) => {
-  if (!button) {
-    return;
-  }
-  button.classList.toggle("button--loading");
+  if (!button) {return;}
+  setTimeout(() => {
+    const buttonText = button.querySelector('.btn-text');
+    const spinner = button.querySelector('.spinner-border');
+
+    if (buttonText && spinner)  {
+      button.disabled = !removeDisabled;
+      buttonText.classList.remove('d-none');
+      spinner.classList.add('d-none');
+    }
+  }, 1);
 };
 
 document.addEventListener("click", async (event) => {
@@ -1549,12 +1607,10 @@ const urlRoutes = {
 
 const afterPageLoad = async (location) => {
   //HEADER
-  if (location === "/") {
-  } else if (location === "/create-post") {
-  } else if (location === "/settings") {
-  }
   //FOOTER
-
+  const footer = document.getElementById('footer-section');
+  footer.classList.add('d-none');
+  footer.classList.remove('fixed-bottom');
   //MAINS
   if (location === "/" || location === "/visitor") {
     const mainSection = document.getElementById("main-section");

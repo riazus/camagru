@@ -7,7 +7,7 @@
         public int Likes { get; set; } = 0;
         public string ImagePath { get; set; }
         public Account Creator { get; set; }
-        public List<Commentary> Comments { get; set; }
+        public IList<Commentary> Comments { get; set; } = new List<Commentary>();
         public virtual ICollection<PostUserLike> LikedByUsers { get; set; }
     }
 }
