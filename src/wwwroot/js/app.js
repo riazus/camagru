@@ -1025,8 +1025,7 @@ const loadComments = async (
 
   let lastCommentId = null;
   if (firstElement != null) {
-    //lastCommentId = parseInt(firstElement.getAttribute("comment-id"));
-    const lastElement = container.lastChild;
+    const lastElement = container.lastElementChild;
     lastCommentId = parseInt(lastElement.getAttribute("comment-id"));
   }
 

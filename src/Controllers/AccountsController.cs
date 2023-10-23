@@ -2,6 +2,8 @@
 using back.Services.UserServices;
 using Microsoft.AspNetCore.Mvc;
 using back.Authorization;
+using Azure;
+using back.Entities;
 
 namespace back.Controllers
 {
@@ -55,9 +57,23 @@ namespace back.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register(RegisterRequest model)
+        public ActionResult Register(RegisterRequest model)
         {
-            _accountService.Register(model, Request.Headers["origin"]);
+            var res = _accountService.Register(model);
+
+            _ = Task.Run(async () =>
+            {
+                if (res.Item1) // already registered
+                {
+                    // send already registered error in email to prevent account enumeration
+                    await _accountService.SendAlreadyRegisteredEmail(res.Item2.Email, Request.Headers["origin"]);
+                }
+                else
+                {
+                    await _accountService.SendVerificationEmail(res.Item2, Request.Headers["origin"]);
+                }
+            });
+
             return Ok(new { message = "Registration successful, please check your email for verification instructions" });
         }
 
@@ -74,7 +90,13 @@ namespace back.Controllers
         [HttpPost("forgot-password")]
         public IActionResult ForgotPassword(ForgotPasswordRequest model)
         {
-            _accountService.ForgotPassword(model, Request.Headers["origin"]);
+            var account = _accountService.ForgotPassword(model);
+
+            _ = Task.Run(async () =>
+            {
+                await _accountService.SendPasswordResetEmail(account, Request.Headers["origin"]);
+            });
+
             return Ok(new { message = "Please check your email for password reset instructions" });
         }
 
@@ -116,8 +138,18 @@ namespace back.Controllers
         [HttpPut]
         public ActionResult<AccountResponse> Update(UpdateRequest model)
         {
-            var account = _accountService.Update(Account, model, Request.Headers["origin"]);
-            return Ok(account);
+            
+            var tuple = _accountService.Update(Account, model);
+
+            if (tuple.Item1)
+            {
+                _ = Task.Run(async () =>
+                {
+                    await _accountService.SendVerificationEmail(Account, Request.Headers["origin"]);
+                });
+            }
+
+            return Ok(tuple.Item2);
         }
 
         [HttpDelete("{id:int}")]

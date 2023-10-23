@@ -199,10 +199,12 @@ namespace back.Services.PostService
             _context.SaveChanges();
         }
 
-        public async Task<Tuple<CommentResponse, Account, Commentary>> CreateComment(int postId, CommentRequest model, Account currUser)
+        public Tuple<CommentResponse, Account, Commentary> CreateComment(int postId, CommentRequest model, Account currUser)
         {
             var post = _context.Posts
-                .SingleOrDefault(p => p.Id == postId) ?? throw new KeyNotFoundException($"Post with id {postId} not found");
+                .Include(p => p.Creator)
+                .SingleOrDefault(p => p.Id == postId)
+                ?? throw new KeyNotFoundException($"Post with id {postId} not found");
 
             Commentary commentary = new()
             {
@@ -236,7 +238,6 @@ namespace back.Services.PostService
                 Username = currUser.Username,
             };
 
-            // TODO TODO TODO
             var tuple = new Tuple<CommentResponse, Account, Commentary>(response, commentary.Post.Creator, commentary);
 
             return tuple;

@@ -118,14 +118,12 @@ public class AccountService : IAccountService
         _context.SaveChanges();
     }
 
-    public void Register(RegisterRequest model, string origin)
+    public Tuple<bool, Account> Register(RegisterRequest model)
     {
         // validate
         if (_context.Accounts.Any(x => x.Email == model.Email || x.Username == model.Username))
-        {
-            // send already registered error in email to prevent account enumeration
-            sendAlreadyRegisteredEmail(model.Email, origin);
-            return;
+        {   
+            return new Tuple<bool, Account>(true, new Account { Email = model.Email });
         }
 
         // map model to new account object
@@ -140,8 +138,7 @@ public class AccountService : IAccountService
         _context.Accounts.Add(account);
         _context.SaveChanges();
 
-        // send email
-        sendVerificationEmail(account, origin);
+        return new Tuple<bool, Account>(false, account);
     }
 
     public void VerifyEmail(string token)
@@ -156,7 +153,7 @@ public class AccountService : IAccountService
         _context.SaveChanges();
     }
 
-    public void ForgotPassword(ForgotPasswordRequest model, string origin)
+    public Account ForgotPassword(ForgotPasswordRequest model)
     {
         var account = _context.Accounts.SingleOrDefault(x => x.Email == model.Email)
             ?? throw new AppException($"Email '{model.Email}' not found");
@@ -168,8 +165,7 @@ public class AccountService : IAccountService
         _context.Accounts.Update(account);
         _context.SaveChanges();
 
-        // send email
-        sendPasswordResetEmail(account, origin);
+        return account;
     }
 
     public void ValidateResetToken(ValidateResetTokenRequest model)
@@ -224,7 +220,7 @@ public class AccountService : IAccountService
         return _mapper.Map(account, new AccountResponse());
     }
 
-    public AccountResponse Update(Account currUser, UpdateRequest model, string origin)
+    public Tuple<bool, AccountResponse> Update(Account currUser, UpdateRequest model)
     {
         // validate
         bool isEmailChanged = false;
@@ -259,12 +255,9 @@ public class AccountService : IAccountService
         _context.Accounts.Update(currUser);
         _context.SaveChanges();
 
-        if (isEmailChanged)
-        {
-            sendVerificationEmail(currUser, origin);
-        }
+        var accountResponse = _mapper.Map(currUser, new AccountResponse());
 
-        return _mapper.Map(currUser, new AccountResponse());
+        return new Tuple<bool, AccountResponse>(isEmailChanged, accountResponse);
     }
 
     public void Delete(int id)
@@ -371,9 +364,10 @@ public class AccountService : IAccountService
         token.ReplacedByToken = replacedByToken;
     }
 
-    private void sendVerificationEmail(Account account, string origin)
+    public async Task SendVerificationEmail(Account account, string origin)
     {
         string message;
+
         if (!string.IsNullOrEmpty(origin))
         {
             // origin exists if request sent from browser single page app (e.g. Angular or React)
@@ -390,7 +384,7 @@ public class AccountService : IAccountService
                             <p><code>{account.VerificationToken}</code></p>";
         }
 
-        _emailService.Send(
+        await _emailService.SendAsync(
             to: account.Email,
             subject: "Sign-up Verification Camagru - Verify Email",
             html: $@"<h4>Verify Email</h4>
@@ -399,15 +393,16 @@ public class AccountService : IAccountService
         );
     }
 
-    private void sendAlreadyRegisteredEmail(string email, string origin)
+    public async Task SendAlreadyRegisteredEmail(string email, string origin)
     {
         string message;
+
         if (!string.IsNullOrEmpty(origin))
             message = $@"<p>If you don't know your password please visit the <a href=""{origin}/forgot-password"">forgot password</a> page.</p>";
         else
             message = "<p>If you don't know your password you can reset it via the <code>/forgot-password</code> api route.</p>";
 
-        _emailService.Send(
+        await _emailService.SendAsync(
             to: email,
             subject: "Sign-up Verification Camagru - Email Already Registered",
             html: $@"<h4>Email Already Registered</h4>
@@ -416,9 +411,10 @@ public class AccountService : IAccountService
         );
     }
 
-    private void sendPasswordResetEmail(Account account, string origin)
+    public async Task SendPasswordResetEmail(Account account, string origin)
     {
         string message;
+
         if (!string.IsNullOrEmpty(origin))
         {
             var resetUrl = $"{origin}/reset-password?token={account.ResetToken}";
@@ -431,7 +427,7 @@ public class AccountService : IAccountService
                             <p><code>{account.ResetToken}</code></p>";
         }
 
-        _emailService.Send(
+        await _emailService.SendAsync(
             to: account.Email,
             subject: "Sign-up Verification Camagru - Reset Password",
             html: $@"<h4>Reset Password Email</h4>

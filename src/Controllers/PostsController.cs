@@ -77,10 +77,10 @@ namespace back.Controllers
         }
 
         [HttpPost("comment/{id:int}")]
-        public async Task<ActionResult<CommentResponse>> CreateComment(int id, CommentRequest model)
+        public ActionResult<CommentResponse> CreateComment(int id, CommentRequest model)
         {
-            var response = await _postService.CreateComment(id, model, Account);
-            
+            var response = _postService.CreateComment(id, model, Account);
+
             if (response.Item2.NeedSendNotifications)
             {
                 _ = Task.Run(async () =>
