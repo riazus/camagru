@@ -57,7 +57,7 @@ namespace back.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public ActionResult Register(RegisterRequest model)
+        public async Task<ActionResult> Register(RegisterRequest model)
         {
             var res = _accountService.Register(model);
 
@@ -88,7 +88,7 @@ namespace back.Controllers
 
         [AllowAnonymous]
         [HttpPost("forgot-password")]
-        public IActionResult ForgotPassword(ForgotPasswordRequest model)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest model)
         {
             var account = _accountService.ForgotPassword(model);
 
@@ -136,7 +136,7 @@ namespace back.Controllers
         }
 
         [HttpPut]
-        public ActionResult<AccountResponse> Update(UpdateRequest model)
+        public async Task<ActionResult<AccountResponse>> Update(UpdateRequest model)
         {
             
             var tuple = _accountService.Update(Account, model);

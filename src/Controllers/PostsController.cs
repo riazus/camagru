@@ -77,7 +77,7 @@ namespace back.Controllers
         }
 
         [HttpPost("comment/{id:int}")]
-        public ActionResult<CommentResponse> CreateComment(int id, CommentRequest model)
+        public async Task<ActionResult<CommentResponse>> CreateComment(int id, CommentRequest model)
         {
             var response = _postService.CreateComment(id, model, Account);
 
