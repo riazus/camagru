@@ -3,6 +3,6 @@
     public class GetCommentsRequest
     {
         public int PostId { get; set; }
-        public int LastCommentId { get; set; }
+        public int? LastCommentId { get; set; }
     }
 }

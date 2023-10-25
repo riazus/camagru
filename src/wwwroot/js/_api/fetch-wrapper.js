@@ -111,7 +111,7 @@ function handleFileResponse(response) {
       }
 
       if (currUser) {
-        return accountService.logout();
+        localStorage.removeItem("currentUser");
       }
 
       return;

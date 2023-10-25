@@ -11,37 +11,37 @@ export const accountService = {
   forgotPassword,
   resetPassword,
   update,
-}
+};
 
 function refreshToken() {
-  return fetchWrapper.post(`${baseUrl}/refresh-token`, {})
-      .then(user => {
-          if (user) {
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            startRefreshTokenTimer();
-            return user;
-          }
-      });
+  return fetchWrapper.post(`${baseUrl}/refresh-token`, {}).then((user) => {
+    if (user) {
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      startRefreshTokenTimer();
+      return user;
+    }
+  });
 }
 
 function login(email, password) {
-  return fetchWrapper.post(`${baseUrl}/authenticate`, { email, password })
-      .then(user => {
-        if (user) {
-          localStorage.setItem('currentUser', JSON.stringify(user));
-          startRefreshTokenTimer();
-          return user;
-        }
-      })
-      .catch((error) => {
-        throw error;
-      });
+  return fetchWrapper
+    .post(`${baseUrl}/authenticate`, { email, password })
+    .then((user) => {
+      if (user) {
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        startRefreshTokenTimer();
+        return user;
+      }
+    })
+    .catch((error) => {
+      throw error;
+    });
 }
 
 async function logout() {
   // revoke token, stop refresh timer, publish null to user subscribers and redirect to login page
   await fetchWrapper.post(`${baseUrl}/revoke-token`, {});
-  localStorage.removeItem('currentUser');
+  localStorage.removeItem("currentUser");
   stopRefreshTokenTimer();
 }
 
@@ -58,7 +58,11 @@ function forgotPassword(email) {
 }
 
 function resetPassword({ token, password, confirmPassword }) {
-  return fetchWrapper.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
+  return fetchWrapper.post(`${baseUrl}/reset-password`, {
+    token,
+    password,
+    confirmPassword,
+  });
 }
 
 function update(params) {
@@ -76,16 +80,16 @@ function startRefreshTokenTimer() {
   }
 
   if (currUser) {
-    const jwtToken = JSON.parse(atob(currUser.jwtToken.split('.')[1]));
-  
+    const jwtToken = JSON.parse(atob(currUser.jwtToken.split(".")[1]));
+
     // set a timeout to refresh the token a minute before it expires
     const expires = new Date(jwtToken.exp * 1000);
-    const timeout = expires.getTime() - Date.now() - (60 * 1000);
+    const timeout = expires.getTime() - Date.now() - 60 * 1000;
     refreshTokenTimeout = setTimeout(refreshToken, timeout);
   }
 }
 
 function stopRefreshTokenTimer() {
-    clearTimeout(refreshTokenTimeout);
+  clearTimeout(refreshTokenTimeout);
 }
 //#endregion

@@ -355,28 +355,31 @@ namespace back.Services.PostService
 
         public IEnumerable<GetCommentsResponse> GetComments(GetCommentsRequest getCommentsRequest)
         {
-            var comments = _context.Comments.FromSqlInterpolated($@"
-                    SELECT TOP 3 comment.*
-                    FROM dbo.Comments comment
-                    WHERE comment.Id < {getCommentsRequest.LastCommentId} AND comment.PostId = {getCommentsRequest.PostId}
-                    ORDER BY comment.Id DESC")
+            IQueryable<Commentary> query = _context.Comments
+                .Where(comment => comment.Post.Id == getCommentsRequest.PostId);
+
+            if (getCommentsRequest.LastCommentId.HasValue)
+            {
+                query = query.Where(comment => comment.Id < getCommentsRequest.LastCommentId);
+            }
+
+            List<Commentary> comments = query
+                .OrderByDescending(comment => comment.Id)
+                .Take(3)
                 .Include(c => c.Account)
                 .ToList();
 
-            List<GetCommentsResponse> res = new List<GetCommentsResponse>();
-
-            foreach(Commentary comment in comments)
+            List<GetCommentsResponse> response = comments.Select(comment => new GetCommentsResponse
             {
-                res.Add(new GetCommentsResponse
-                {
-                    Id = comment.Id,
-                    Comment = comment.Content,
-                    Username = comment.Account.Username,
-                    CreatedDate = comment.CreatedDate,
-                });
-            }
+                Id = comment.Id,
+                Comment = comment.Content,
+                Username = comment.Account.Username,
+                CreatedDate = comment.CreatedDate,
+            }).ToList();
 
-            return res;
+            response.Reverse();
+
+            return response;
         }
 
         public int GetPostCommentsCount(int postId)

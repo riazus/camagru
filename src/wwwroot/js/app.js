@@ -869,7 +869,7 @@ const convertStringToElement = (htmlString) => {
 
 let lastPostId = null;
 const loadPosts = async (container, userId, reset = false) => {
-  const isDialogSupported = typeof HTMLDialogElement !== 'undefined';
+  const isDialogSupported = typeof HTMLDialogElement !== "undefined";
   let posts;
 
   if (reset) {
@@ -904,16 +904,16 @@ const loadPosts = async (container, userId, reset = false) => {
     const post = posts[i];
     const newElement = postElement.cloneNode(true);
 
-    const creatorElement = newElement.querySelector('#post-username');
-    const likeCountElement = newElement.querySelector('#like-count');
+    const creatorElement = newElement.querySelector("#post-username");
+    const likeCountElement = newElement.querySelector("#like-count");
     const timeCreatedElement = newElement.querySelector("#post-date");
-    const imageElement = newElement.querySelector('#post-image');
+    const imageElement = newElement.querySelector("#post-image");
     const likeElement = newElement.querySelector("#like-post");
     const commentForm = newElement.querySelector("#comment-form");
     const commentContainer = newElement.querySelector("#comment-container");
-    const deleteButton = newElement.querySelector('#erase-post');
+    const deleteButton = newElement.querySelector("#erase-post");
     const deleteDialog = newElement.querySelector("#erase-dialog");
-    
+
     if (!isDialogSupported) {
       deleteDialog.remove();
     }
@@ -969,37 +969,40 @@ const loadPosts = async (container, userId, reset = false) => {
 
     if (isLogged) {
       if (currUser.id == post.userId) {
-        deleteButton.classList.remove('d-none');
+        deleteButton.classList.remove("d-none");
       }
 
       const deletePost = async () => {
-          await postService.deletePost(post.id);
-          newElement.remove();
-          const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
-          const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
-          if ((scrollTop + window.innerHeight) >= scrollHeight) {
-            const footer = document.getElementById('footer-section');
-            footer.classList.remove('d-none');
-            footer.classList.add('fixed-bottom');
-          }
-      }
-      deleteButton.addEventListener('click', () => {
+        await postService.deletePost(post.id);
+        newElement.remove();
+        const scrollTop =
+          (document.documentElement && document.documentElement.scrollTop) ||
+          document.body.scrollTop;
+        const scrollHeight =
+          (document.documentElement && document.documentElement.scrollHeight) ||
+          document.body.scrollHeight;
+        if (scrollTop + window.innerHeight >= scrollHeight) {
+          const footer = document.getElementById("footer-section");
+          footer.classList.remove("d-none");
+          //footer.classList.add("fixed-bottom");
+        }
+      };
+      deleteButton.addEventListener("click", () => {
         if (isDialogSupported) {
-            deleteDialog.showModal();
-            const realDelete = deleteDialog.querySelector('#delete');
-            const cancel = deleteDialog.querySelector('#cancel');
-            realDelete.addEventListener('click', async () => {
-                deletePost();
-                deleteDialog.close();
-            });
-            cancel.addEventListener('click', () => {
-                deleteDialog.close();
-            });
-        }
-        else {
+          deleteDialog.showModal();
+          const realDelete = deleteDialog.querySelector("#delete");
+          const cancel = deleteDialog.querySelector("#cancel");
+          realDelete.addEventListener("click", async () => {
             deletePost();
+            deleteDialog.close();
+          });
+          cancel.addEventListener("click", () => {
+            deleteDialog.close();
+          });
+        } else {
+          deletePost();
         }
-      })
+      });
     }
 
     container.appendChild(newElement);
@@ -1029,18 +1032,10 @@ const loadComments = async (
     lastCommentId = parseInt(lastElement.getAttribute("comment-id"));
   }
 
-  let comments;
-  if (lastCommentId != null) {
-    comments = await postService.getComments({
-      postId: postId,
-      lastCommentId: lastCommentId,
-    });
-  } else {
-    comments = await postService.getComments({
-      postId: postId,
-      lastCommentId: 999, //TODO
-    });
-  }
+  const comments = await postService.getComments({
+    postId: postId,
+    lastCommentId: lastCommentId,
+  });
 
   const commentElement = convertStringToElement(
     await (await fetch(`html/mains/comment.html`)).text()
@@ -1139,27 +1134,31 @@ document.addEventListener("scroll", async () => {
 });
 
 const buttonLoadingOn = (button) => {
-  if (!button) {return;}
-    const buttonText = button.querySelector('.btn-text');
-    const spinner = button.querySelector('.spinner-border');
+  if (!button) {
+    return;
+  }
+  const buttonText = button.querySelector(".btn-text");
+  const spinner = button.querySelector(".spinner-border");
 
-    if (buttonText && spinner)  {
-      button.disabled = true;
-      buttonText.classList.add('d-none');
-      spinner.classList.remove('d-none');
-    }
+  if (buttonText && spinner) {
+    button.disabled = true;
+    buttonText.classList.add("d-none");
+    spinner.classList.remove("d-none");
+  }
 };
 
 const buttonLoadingOff = async (button, removeDisabled = true) => {
-  if (!button) {return;}
+  if (!button) {
+    return;
+  }
   setTimeout(() => {
-    const buttonText = button.querySelector('.btn-text');
-    const spinner = button.querySelector('.spinner-border');
+    const buttonText = button.querySelector(".btn-text");
+    const spinner = button.querySelector(".spinner-border");
 
-    if (buttonText && spinner)  {
+    if (buttonText && spinner) {
       button.disabled = !removeDisabled;
-      buttonText.classList.remove('d-none');
-      spinner.classList.add('d-none');
+      buttonText.classList.remove("d-none");
+      spinner.classList.add("d-none");
     }
   }, 1);
 };
@@ -1607,9 +1606,9 @@ const urlRoutes = {
 const afterPageLoad = async (location) => {
   //HEADER
   //FOOTER
-  const footer = document.getElementById('footer-section');
-  footer.classList.add('d-none');
-  footer.classList.remove('fixed-bottom');
+  const footer = document.getElementById("footer-section");
+  footer.classList.add("d-none");
+  footer.classList.remove("fixed-bottom");
   //MAINS
   if (location === "/" || location === "/visitor") {
     const mainSection = document.getElementById("main-section");
@@ -1642,7 +1641,9 @@ const afterPageLoad = async (location) => {
     } else if (scrollTop + window.innerHeight >= scrollHeight) {
       const footer = document.getElementById("footer-section");
       footer.classList.remove("d-none");
-      footer.classList.add("fixed-bottom");
+      if (container.querySelectorAll("#post-container").length !== 1) {
+        footer.classList.add("fixed-bottom");
+      }
     }
     stopWebcam();
   } else if (location === "/create-post") {
