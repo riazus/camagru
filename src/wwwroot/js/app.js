@@ -984,7 +984,7 @@ const loadPosts = async (container, userId, reset = false) => {
         if (scrollTop + window.innerHeight >= scrollHeight) {
           const footer = document.getElementById("footer-section");
           footer.classList.remove("d-none");
-          //footer.classList.add("fixed-bottom");
+          footer.classList.add("fixed-bottom");
         }
       };
       deleteButton.addEventListener("click", () => {
@@ -1641,9 +1641,10 @@ const afterPageLoad = async (location) => {
     } else if (scrollTop + window.innerHeight >= scrollHeight) {
       const footer = document.getElementById("footer-section");
       footer.classList.remove("d-none");
-      if (container.querySelectorAll("#post-container").length !== 1) {
-        footer.classList.add("fixed-bottom");
-      }
+      // if (container.querySelectorAll("#post-container").length !== 1) {
+      //   footer.classList.add("fixed-bottom");
+      // }
+      footer.classList.add("fixed-bottom");
     }
     stopWebcam();
   } else if (location === "/create-post") {
